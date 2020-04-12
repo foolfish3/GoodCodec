@@ -1,8 +1,11 @@
 <?php
 namespace GoodCodec;
+
+//TODO 更严格的逻辑 原先会跳过空行，其实应该不跳过空行
+//TODO 换行 允许 \r\n \n\r \r \n 
+
 class GoodCodec{
 	
-
 	public static function csv_encode_str($str,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
         $map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
         $s2="";
