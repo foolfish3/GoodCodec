@@ -1,6 +1,8 @@
 <?php
 namespace GoodCodec;
 class GoodCodec{
+	
+
 	public static function csv_encode_str($str,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
         $map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
         $s2="";
@@ -71,6 +73,10 @@ class GoodCodec{
 		}
 		return $s;
 	}
+
+	//TODO read csv line in stream mode
+	//public static function csv_decode_stream($fp,$closeit,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+	//}
 
 	public static function csv_decode_str($str,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
 		if($str===""){
