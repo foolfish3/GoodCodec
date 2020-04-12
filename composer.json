@@ -1,0 +1,13 @@
+{
+    "name": "foolfish3/goodcodec",
+	"description": "fast csv tsv mysql_quote encoder and decoder",
+	"license": "MIT",
+    "require": {
+        "php": ">=5.5"
+	},
+	"autoload": {
+        "psr-4": {
+            "GoodCodec\\": "src/"
+        }
+    }
+}
