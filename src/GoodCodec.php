@@ -1,20 +1,14 @@
 <?php
 namespace GoodCodec;
 
-//TODO 流式一行一行读取
-//COMPLETE 更严格的逻辑 原先会跳过空行，其实应该不跳过空行 => 已经解决
-//COMPLETE 换行 允许 \r\n \n\r \r \n  => 已经解决
-//COMPLETE NULL 的支持( \N ?) => 已经解决
-//COMPLETE 跳过表头若干行 => 已经解决
-//TODO 和php自带函数一个一个字符做对比
-
 class GoodCodec{
 	
 	public static function csv_encode_str($str,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
 		if($str===NULL){
 			return $null;
 		}
-        $map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
+		//"\0"=>1,"\x0B"=>1,
+        $map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
         $s2="";
 		$quote=false;
 		$length=\strlen($str);
@@ -32,7 +26,8 @@ class GoodCodec{
     }
 
     public static function csv_encode_row($row,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
-		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
+		//"\0"=>1,"\x0B"=>1,
+		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
 		$s="";
 		foreach($row as $idx=>$str){
 			if($idx!==0){
@@ -61,7 +56,8 @@ class GoodCodec{
 	}
 
 	public static function csv_encode_table($data,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\",$newline = "\n"){
-		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
+		//"\0"=>1,"\x0B"=>1,
+		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
 		$s="";
 		foreach($data as $row){
 			foreach($row as $idx=>$str){
@@ -92,9 +88,229 @@ class GoodCodec{
 		return $s;
 	}
 
-	//TODO read csv line in stream mode
-	//public static function csv_decode_stream($fp,$closeit,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
-	//}
+	public static function csv_decode_stream($stream,$close_stream,$skip_lines=0,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+		if(($c=\fgetc($stream))===false){
+			if($close_stream){
+				\fclose($stream);
+			}
+			return;
+		}
+        $s="";
+		$row=array();
+		if($delimiter==="," && $enclosure==="\"" && $escape==="\\"){//a little fast
+			for(;;){
+				switch($c){
+					case ",":
+						$row[]=$s;
+						$s="";
+						($c=\fgetc($stream))!==false or $c="";
+					break;
+					case "\"":
+						for(;;){
+							($c=\fgetc($stream))!==false or $c="";
+N1:							switch($c){
+								case "\"":
+									($c=\fgetc($stream))!==false or $c="";
+									if($c==="\""){
+										$s.="\"";
+									}else{
+										for(;;){
+											switch($c){
+												case "\r": case "\n": case "," : case "" :
+												break 2;
+											}
+											$s.=$c;
+											($c=\fgetc($stream))!==false or $c="";
+										}
+										break 2;
+									}
+								break;
+								case "\\":
+									($c=\fgetc($stream))!==false or $c="";
+									if($c==="\""){
+										$s.="\"";
+									}else{
+										$s.="\\";
+										goto N1;
+									}
+								break;
+								case ""://at the end,still cannot find matched $enclosure
+								break 2;
+								default:
+									$s.=$c;
+							}
+						}		
+					break;
+					case "":
+						$row[]=$s;
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							(yield $row);
+						}
+					break 2;//=== END ===
+					case "\r":
+						for(;;){
+							($c=\fgetc($stream))!==false or $c="";
+							if($c!=="\n"){
+								break;
+							}
+						}
+						$row[]=$s;
+						$s="";
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							(yield $row);
+						}
+						$row=array();
+						if($c===""){
+							break 2;//=== END ===
+						}
+					break;
+					case "\n":
+						for(;;){
+							($c=\fgetc($stream))!==false or $c="";
+							if($c!=="\r"){
+								break;
+							}
+						}
+						$row[]=$s;
+						$s="";
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							(yield $row);
+						}
+						$row=array();
+						if($c===""){
+							break 2;//=== END ===
+						}
+					break;
+					default:
+						for(;;){
+							switch($c){
+								case "\r": case "\n": case "," : case "" :
+								break 2;
+							}
+							$s.=$c;
+							($c=\fgetc($stream))!==false or $c="";
+						}
+						if($s===$null){
+							$s=NULL;
+						}
+				}
+			}
+			return;
+		}
+		$map=array(""=>0,$delimiter=>1,$enclosure=>2,$escape=>3,"\r"=>4,"\n"=>4);
+		$map2=array(""=>0,$delimiter=>1,"\r"=>4,"\n"=>5);
+        for(;;){
+			if(isset($map[$c])){
+				switch($map[$c]){
+					case 0:
+						$row[]=$s;
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							(yield $row);
+						}
+					break 2;
+					case 1://,
+						$row[]=$s;
+						$s="";
+						($c=\fgetc($stream))!==false or $c="";
+					continue 2;
+					case 2://"
+						for(;;){
+							($c=\fgetc($stream))!==false or $c="";
+N2:							if(isset($map[$c])){
+								switch($map[$c]){
+									case 0:
+										continue 4;//at the end,still cannot find matched $enclosure
+									case 2:
+										($c=\fgetc($stream))!==false or $c="";
+										if($c===$enclosure){
+											$s.=$enclosure;
+										}else{
+											for(;;){
+												switch($c){
+													case "\r": case "\n": case "," : case "" :
+													break 2;
+												}
+												$s.=$c;
+												($c=\fgetc($stream))!==false or $c="";
+											}
+											continue 4;
+										}
+									continue 2;
+									case 3:
+										($c=\fgetc($stream))!==false or $c="";
+										if($c===$enclosure){
+											$s.=$enclosure;
+										}else{
+											$s.=$escape;
+											goto N2;
+										}
+									continue 2;
+								}
+							}
+							$s.=$c;
+						}
+					throw new \Error("BUG");
+					case 4:
+						for(;;){
+							($c=\fgetc($stream))!==false or $c="";
+							if($c!=="\n"){
+								break;
+							}
+						}
+						$row[]=$s;
+						$s="";
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							(yield $row);
+						}
+						$row=array();
+						if($c===""){
+							break 2;//=== END ===
+						}
+					continue 2;
+					case 5:
+						for(;;){
+							($c=\fgetc($stream))!==false or $c="";
+							if($c!=="\r"){
+								break;
+							}
+						}
+						$row[]=$s;
+						$s="";
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							(yield $row);
+						}
+						$row=array();
+						if($c===""){
+							break 2;//=== END ===
+						}
+					continue 2;
+				}
+			}
+			for(;;){
+				if(isset($map2[$c])){
+					break;
+				}
+				$s.=$c;
+				($c=\fgetc($stream))!==false or $c="";
+			}
+			if($s===$null){
+				$s=NULL;
+			}
+        }
+        return;
+	}
 
 	public static function csv_decode_str($str,$skip_lines=0,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
 		if($str===""){
@@ -116,13 +332,12 @@ class GoodCodec{
 						$index++;
 						for(;$index<$length;$index++){
 							$c=@$str[$index];
-							switch($c){
+N1:							switch($c){
 								case "\"":
-									if(@$str[$index+1]==="\""){
+									$c=@$str[++$index];
+									if($c==="\""){
 										$s.="\"";
-										$index++;
 									}else{
-										$index++;
 										for($old_index=$index;$index<$length;$index++){
 											switch(@$str[$index]){
 												case "\r": case "\n": case "," : case "" :
@@ -134,11 +349,13 @@ class GoodCodec{
 									}
 								break;
 								case "\\":
-									if(@$str[$index+1]==="\""){
+									$c2=@$str[++$index];
+									if($c2==="\""){
 										$s.="\"";
-										$index++;
 									}else{
 										$s.=$c;
+										$c=$c2;
+										goto N1;
 									}
 								break;
 								case ""://at the end,still cannot find matched $enclosure
@@ -232,16 +449,15 @@ class GoodCodec{
 						$index++;
 						for(;$index<$length;$index++){
 							$c=@$str[$index];
-							if(isset($map[$c])){
+N2:							if(isset($map[$c])){
 								switch($map[$c]){
 									case 0:
 										continue 4;//at the end,still cannot find matched $enclosure
 									case 2:
-										if(@$str[$index+1]===$enclosure){
+										$c=@$str[++$index];
+										if($c===$enclosure){
 											$s.=$enclosure;
-											$index++;
 										}else{
-											$index++;
 											for($old_index=$index;$index<$length;$index++){
 												if(isset($map2[@$str[$index]])){
 													break;
@@ -252,11 +468,13 @@ class GoodCodec{
 										}
 									continue 2;
 									case 3:
-										if(@$str[$index+1]===$enclosure){
+										$c2=@$str[++$index];
+										if($c2===$enclosure){
 											$s.=$enclosure;
-											$index++;
 										}else{
 											$s.=$c;
+											$c=$c2;
+											goto N2;
 										}
 									continue 2;
 								}
