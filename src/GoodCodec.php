@@ -117,7 +117,7 @@ class GoodCodec{
 										$s.=$c;
 									}
 								break;
-								case ""://at the end,still cannot find matched "
+								case ""://at the end,still cannot find matched $enclosure
 								break 2;
 								default:
 									$s.=$c;
@@ -180,7 +180,7 @@ class GoodCodec{
 							if(isset($map[$c])){
 								switch($map[$c]){
 									case 0:
-										continue 4;
+										continue 4;//at the end,still cannot find matched $enclosure
 									case 2:
 										if(@$str[$index+1]===$enclosure){
 											$s.=$enclosure;
