@@ -10,7 +10,7 @@ complete tested for clickhouse / mysql use
 | | Excel |MySQL|ClickHouse|PHP|
 |----|-----|----|-----|-----|
 |DELIMITER|COMMA(,) | | |COMMA(,)|
-|LINEBREAK|CRLF(\r\n) | | |SYSTEM PHP_EOL|
+|LINEBREAK|CRLF(\r\n) | | |SYSTEM PHP_EOL<br>auto_detect_line_endings|
 |ENCLOSURE|DQUOTE(") | | |DQUOTE(") |
 |QUOTE| noquote as possible | | string/date->quote<br>number->noquote | \\x20 \\t \\r \\n \\" \\\\ , |
 |ESCAPE|none| | |BACKSLASH(\\) |
