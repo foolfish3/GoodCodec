@@ -1,12 +1,19 @@
 <?php
 namespace GoodCodec;
 
-//TODO 更严格的逻辑 原先会跳过空行，其实应该不跳过空行
-//TODO 换行 允许 \r\n \n\r \r \n 
+//TODO 流式一行一行读取
+//COMPLETE 更严格的逻辑 原先会跳过空行，其实应该不跳过空行 => 已经解决
+//COMPLETE 换行 允许 \r\n \n\r \r \n  => 已经解决
+//COMPLETE NULL 的支持( \N ?) => 已经解决
+//COMPLETE 跳过表头若干行 => 已经解决
+//TODO 和php自带函数一个一个字符做对比
 
 class GoodCodec{
 	
-	public static function csv_encode_str($str,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+	public static function csv_encode_str($str,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+		if($str===NULL){
+			return $null;
+		}
         $map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
         $s2="";
 		$quote=false;
@@ -24,12 +31,16 @@ class GoodCodec{
 		return $quote?"\"$s2\"":$s2;
     }
 
-    public static function csv_encode_row($row,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+    public static function csv_encode_row($row,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
 		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
 		$s="";
 		foreach($row as $idx=>$str){
 			if($idx!==0){
 				$s.=",";
+			}
+			if($str===NULL){
+				$s.=$null;
+				continue;	
 			}
 			$s2="";
 			$quote=false;
@@ -49,13 +60,17 @@ class GoodCodec{
 		return $s;
 	}
 
-	public static function csv_encode_table($data,$delimiter = "," ,$enclosure = "\"", $escape = "\\",$newline = "\n"){
+	public static function csv_encode_table($data,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\",$newline = "\n"){
 		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
 		$s="";
 		foreach($data as $row){
 			foreach($row as $idx=>$str){
 				if($idx!==0){
 					$s.=",";
+				}
+				if($str===NULL){
+					$s.=$null;
+					continue;	
 				}
 				$s2="";
 				$quote=false;
@@ -81,7 +96,7 @@ class GoodCodec{
 	//public static function csv_decode_stream($fp,$closeit,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
 	//}
 
-	public static function csv_decode_str($str,$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+	public static function csv_decode_str($str,$skip_lines=0,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
 		if($str===""){
 			return array();
 		}
@@ -135,21 +150,45 @@ class GoodCodec{
 					break;
 					case "":
 						$row[]=$s;
-						$data[]=$row;
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							$data[]=$row;
+						}
 					break 2;//=== END ===
-					case "\r":case "\n":
+					case "\r":
 						for(;;){
 							$c=@$str[++$index];
-							switch($c){
-								case "\r": case "\n":
+							if($c!=="\n"){
 								break;
-								default:
-								break 2;
 							}
 						}
 						$row[]=$s;
 						$s="";
-						$data[]=$row;
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							$data[]=$row;
+						}
+						$row=array();
+						if($c===""){
+							break 2;//=== END ===
+						}
+					break;
+					case "\n":
+						for(;;){
+							$c=@$str[++$index];
+							if($c!=="\r"){
+								break;
+							}
+						}
+						$row[]=$s;
+						$s="";
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							$data[]=$row;
+						}
 						$row=array();
 						if($c===""){
 							break 2;//=== END ===
@@ -163,19 +202,26 @@ class GoodCodec{
 							}
 						}
 						$s=\substr($str,$old_index,$index-$old_index);
+						if($s===$null){
+							$s=NULL;
+						}
 				}
 			}
 			return $data;
 		}
 		$map=array(""=>0,$delimiter=>1,$enclosure=>2,$escape=>3,"\r"=>4,"\n"=>4);
-		$map2=array(""=>0,$delimiter=>1,"\r"=>4,"\n"=>4);
+		$map2=array(""=>0,$delimiter=>1,"\r"=>4,"\n"=>5);
         for($index=0;$index<$length;){
 			$c=@$str[$index];
 			if(isset($map[$c])){
 				switch($map[$c]){
 					case 0:
 						$row[]=$s;
-						$data[]=$row;
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							$data[]=$row;
+						}
 					break 2;
 					case 1:
 						$row[]=$s;
@@ -221,16 +267,36 @@ class GoodCodec{
 					case 4:
 						for(;;){
 							$c=@$str[++$index];
-							switch($c){
-								case "\r": case "\n":
+							if($c!=="\n"){
 								break;
-								default:
-								break 2;
 							}
 						}
 						$row[]=$s;
 						$s="";
-						$data[]=$row;
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							$data[]=$row;
+						}
+						$row=array();
+						if($c===""){
+							break 2;//=== END ===
+						}
+					continue 2;
+					case 5:
+						for(;;){
+							$c=@$str[++$index];
+							if($c!=="\r"){
+								break;
+							}
+						}
+						$row[]=$s;
+						$s="";
+						if($skip_lines>0){
+							$skip_lines--;
+						}else{
+							$data[]=$row;
+						}
 						$row=array();
 						if($c===""){
 							break 2;//=== END ===
@@ -244,6 +310,9 @@ class GoodCodec{
 				}
 			}
 			$s=\substr($str,$old_index,$index-$old_index);
+			if($s===$null){
+				$s=NULL;
+			}
         }
         return $data;
 	}
