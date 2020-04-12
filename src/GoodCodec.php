@@ -5,7 +5,7 @@ class GoodCodec{
         $map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,"\0"=>1,"\x0B"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
         $s2="";
 		$quote=false;
-		$length=strlen($str);
+		$length=\strlen($str);
 		for($i=0;$i<$length;$i++){
 			$c=$str[$i];
 			if(isset($map[$c])){
@@ -28,7 +28,7 @@ class GoodCodec{
 			}
 			$s2="";
 			$quote=false;
-			$length=strlen($str);
+			$length=\strlen($str);
 			for($i=0;$i<$length;$i++){
 				$c=$str[$i];
 				if(isset($map[$c])){
@@ -54,7 +54,7 @@ class GoodCodec{
 				}
 				$s2="";
 				$quote=false;
-				$length=strlen($str);
+				$length=\strlen($str);
 				for($i=0;$i<$length;$i++){
 					$c=$str[$i];
 					if(isset($map[$c])){
