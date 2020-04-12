@@ -12,7 +12,7 @@ complete tested for clickhouse / mysql use
 |DELIMITER|COMMA(,) | | |COMMA(,)|
 |LINEBREAK|CRLF(\r\n) | | |SYSTEM PHP_EOL|
 |ENCLOSURE|DQUOTE(") | | |DQUOTE(") |
-|QUOTE| noquote as possible | | string/date->quote number->noquote | \\x20 \\t \\r \\n \\" \\\\ , |
+|QUOTE| noquote as possible | | string/date->quote<br>number->noquote | \\x20 \\t \\r \\n \\" \\\\ , |
 |ESCAPE|none| | |BACKSLASH(\\) |
 |NULL| -- | \N, NULL | \N, NULL,<br>  empty string without quote| -- |
 |BEGIN & END BLANK| as is | as is | trim | as is |
