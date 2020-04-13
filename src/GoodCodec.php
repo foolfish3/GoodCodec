@@ -3,61 +3,50 @@ namespace GoodCodec;
 
 class GoodCodec{
 	
-	public static function csv_encode_str($str,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+	public static function csv_encode_str($str, $null="NULL", $enclosure = "\""){
 		if($str===NULL){
 			return $null;
 		}
-		//"\0"=>1,"\x0B"=>1,
-        $map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
-        $s2="";
-		$quote=false;
+		$s=$enclosure;
+		$str=(string)$str;
 		$length=\strlen($str);
 		for($i=0;$i<$length;$i++){
 			$c=$str[$i];
-			if(isset($map[$c])){
-				$quote=true;
-				if($c===$enclosure){
-					$s2.=$c;
-				}
+			if($c===$enclosure){
+				$s.=$c;
 			}
-			$s2.=$c;
+			$s.=$c;
 		}
-		return $quote?"\"$s2\"":$s2;
-    }
+		return $s.$enclosure;
+	}
 
-    public static function csv_encode_row($row,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
-		//"\0"=>1,"\x0B"=>1,
-		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
+    public static function csv_encode_row($row, $null="NULL", $delimiter = ",", $enclosure = "\""){
 		$s="";
 		foreach($row as $idx=>$str){
 			if($idx!==0){
-				$s.=",";
+				$s.=$delimiter;
 			}
 			if($str===NULL){
 				$s.=$null;
 				continue;	
 			}
-			$s2="";
-			$quote=false;
+			$s.=$enclosure;
+			$str=(string)$str;
 			$length=\strlen($str);
 			for($i=0;$i<$length;$i++){
 				$c=$str[$i];
-				if(isset($map[$c])){
-					$quote=true;
-					if($c===$enclosure){
-						$s2.=$c;
-					}
+				if($c===$enclosure){
+					$s.=$c;
 				}
-				$s2.=$c;
+				$s.=$c;
 			}
-			$s.=($quote?"\"$s2\"":$s2);
+			$s.=$enclosure;
 		}
 		return $s;
 	}
 
-	public static function csv_encode_table($data,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\",$newline = "\n"){
-		//"\0"=>1,"\x0B"=>1,
-		$map=array(" "=>1,"\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$escape=>1,$enclosure=>1);
+	public static function csv_encode_table_excel($data, $out_charset="UTF-8", $in_charset="UTF-8",$null = "", $delimiter = ",", $enclosure = "\"", $newline = "\r\n"){
+		$map=array("\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$enclosure=>1);
 		$s="";
 		foreach($data as $row){
 			foreach($row as $idx=>$str){
@@ -70,6 +59,7 @@ class GoodCodec{
 				}
 				$s2="";
 				$quote=false;
+				$str=(string)$str;
 				$length=\strlen($str);
 				for($i=0;$i<$length;$i++){
 					$c=$str[$i];
@@ -85,19 +75,73 @@ class GoodCodec{
 			}
 			$s.=$newline;
 		}
+		if($out_charset===NULL||$out_charset==="UTF-8"||preg_match("{^\\s*utf\\-?8\\s*$}si",$out_charset)){
+			$out_charset="UTF-8";
+		}
+		
+		if($in_charset===NULL||$in_charset==="UTF-8"||preg_match("{^\\s*utf\\-?8\\s*$}si",$in_charset)){
+			$in_charset="UTF-8";
+		}
+		if($out_charset!=$in_charset){
+			$s=iconv($in_charset,$out_charset,$s);
+		}
+		if($out_charset==="UTF-8" && preg_match("{[\\x80\\xFF]}",$str)){
+			return "\xEF\xBB\xBF".$s;
+		}else{
+			return $s;
+		}
+	}
+
+	public static function csv_encode_table($data, $null="NULL", $delimiter = ",", $enclosure = "\"", $newline = "\n"){
+		$s="";
+		foreach($data as $row){
+			foreach($row as $idx=>$str){
+				if($idx!==0){
+					$s.=$delimiter;
+				}
+				if($str===NULL){
+					$s.=$null;
+					continue;	
+				}
+				$s.=$enclosure;
+				$str=(string)$str;
+				$length=\strlen($str);
+				for($i=0;$i<$length;$i++){
+					$c=$str[$i];
+					if($c===$enclosure){
+						$s.=$c;
+					}
+					$s.=$c;
+				}
+				$s.=$enclosure;
+			}
+			$s.=$newline;
+		}
 		return $s;
 	}
 
-	public static function csv_decode_stream($stream,$close_stream,$skip_lines=0,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
+	public static function csv_decode_stream($stream, $close_stream, $skip_lines=0, $null=array("\N","NULL"), $remove_bom=1, $delimiter = ",", $enclosure = "\""){
 		if(($c=\fgetc($stream))===false){
 			if($close_stream){
 				\fclose($stream);
 			}
 			return;
 		}
-        $s="";
+		if($null===NULL){
+			$null=array("\N","NULL");
+		}elseif(is_scalar($null)){
+			$null=array($null);
+		}
+		$map3=array();
+		foreach($null as $v){
+			$map3[$v]=1;
+		}
+		if($remove_bom){
+			$remove_bom=1;
+		}
+		$s="";
 		$row=array();
-		if($delimiter==="," && $enclosure==="\"" && $escape==="\\"){//a little fast
+		if($delimiter==="," && $enclosure==="\"" ){//a little fast
 			for(;;){
 				switch($c){
 					case ",":
@@ -108,7 +152,7 @@ class GoodCodec{
 					case "\"":
 						for(;;){
 							($c=\fgetc($stream))!==false or $c="";
-N1:							switch($c){
+							switch($c){
 								case "\"":
 									($c=\fgetc($stream))!==false or $c="";
 									if($c==="\""){
@@ -123,15 +167,6 @@ N1:							switch($c){
 											($c=\fgetc($stream))!==false or $c="";
 										}
 										break 2;
-									}
-								break;
-								case "\\":
-									($c=\fgetc($stream))!==false or $c="";
-									if($c==="\""){
-										$s.="\"";
-									}else{
-										$s.="\\";
-										goto N1;
 									}
 								break;
 								case ""://at the end,still cannot find matched $enclosure
@@ -196,14 +231,24 @@ N1:							switch($c){
 							$s.=$c;
 							($c=\fgetc($stream))!==false or $c="";
 						}
-						if($s===$null){
+						if($remove_bom && @$s[0]==="\xEF" && @$s[1]==="\xBB" && @$s[2]==="\xBF"){
+							$remove_bom=0;
+							$s=\substr($s,0,3);
+							if($c===""){
+								break 2;
+							}
+						}
+						if(isset($map3[$s])){
 							$s=NULL;
 						}
 				}
 			}
+			if($close_stream){
+				\fclose($stream);
+			}
 			return;
 		}
-		$map=array(""=>0,$delimiter=>1,$enclosure=>2,$escape=>3,"\r"=>4,"\n"=>4);
+		$map=array(""=>0,$delimiter=>1,$enclosure=>2,"\r"=>4,"\n"=>5);
 		$map2=array(""=>0,$delimiter=>1,"\r"=>4,"\n"=>5);
         for(;;){
 			if(isset($map[$c])){
@@ -224,7 +269,7 @@ N1:							switch($c){
 					case 2://"
 						for(;;){
 							($c=\fgetc($stream))!==false or $c="";
-N2:							if(isset($map[$c])){
+							if(isset($map[$c])){
 								switch($map[$c]){
 									case 0:
 										continue 4;//at the end,still cannot find matched $enclosure
@@ -242,15 +287,6 @@ N2:							if(isset($map[$c])){
 												($c=\fgetc($stream))!==false or $c="";
 											}
 											continue 4;
-										}
-									continue 2;
-									case 3:
-										($c=\fgetc($stream))!==false or $c="";
-										if($c===$enclosure){
-											$s.=$enclosure;
-										}else{
-											$s.=$escape;
-											goto N2;
 										}
 									continue 2;
 								}
@@ -305,22 +341,45 @@ N2:							if(isset($map[$c])){
 				$s.=$c;
 				($c=\fgetc($stream))!==false or $c="";
 			}
-			if($s===$null){
+			if($remove_bom && @$s[0]==="\xEF" && @$s[1]==="\xBB" && @$s[2]==="\xBF"){
+				$remove_bom=0;
+				$s=\substr($s,0,3);
+				if($c===""){
+					break;
+				}
+			}
+			if(isset($map3[$s])){
 				$s=NULL;
 			}
-        }
+		}
+		if($close_stream){
+			\fclose($stream);
+		}
         return;
 	}
 
-	public static function csv_decode_str($str,$skip_lines=0,$null="\\N",$delimiter = "," ,$enclosure = "\"", $escape = "\\"){
-		if($str===""){
+	public static function csv_decode_str($str,$skip_lines=0,$null=array("\N","NULL"),$remove_bom=1,$delimiter = "," ,$enclosure = "\""){
+		if($str===""||$str==="\xEF\xBB\xBF"){
 			return array();
+		}
+		if($null===NULL){
+			$null=array("\N","NULL");
+		}elseif(is_scalar($null)){
+			$null=array($null);
+		}
+		$map3=array();
+		foreach($null as $v){
+			$map3[$v]=1;
+		}
+		$index=0;
+		if($remove_bom && $str[0]==="\xEF" && @$str[1]==="\xBB" && @$str[2]==="\xBF"){
+			$index=3;
 		}
         $s="";
 		$data=$row=array();
 		$length=\strlen($str)+1;
-		if($delimiter==="," && $enclosure==="\"" && $escape==="\\"){//a little fast
-			for($index=0;$index<$length;){
+		if($delimiter==="," && $enclosure==="\""){//a little fast
+			for(;$index<$length;){
 				$c=@$str[$index];
 				switch($c){
 					case ",":
@@ -332,7 +391,7 @@ N2:							if(isset($map[$c])){
 						$index++;
 						for(;$index<$length;$index++){
 							$c=@$str[$index];
-N1:							switch($c){
+							switch($c){
 								case "\"":
 									$c=@$str[++$index];
 									if($c==="\""){
@@ -346,16 +405,6 @@ N1:							switch($c){
 										}
 										$s.=\substr($str,$old_index,$index-$old_index);
 										break 2;
-									}
-								break;
-								case "\\":
-									$c2=@$str[++$index];
-									if($c2==="\""){
-										$s.="\"";
-									}else{
-										$s.=$c;
-										$c=$c2;
-										goto N1;
 									}
 								break;
 								case ""://at the end,still cannot find matched $enclosure
@@ -419,16 +468,16 @@ N1:							switch($c){
 							}
 						}
 						$s=\substr($str,$old_index,$index-$old_index);
-						if($s===$null){
+						if(isset($map3[$s])){
 							$s=NULL;
 						}
 				}
 			}
 			return $data;
 		}
-		$map=array(""=>0,$delimiter=>1,$enclosure=>2,$escape=>3,"\r"=>4,"\n"=>4);
+		$map=array(""=>0,$delimiter=>1,$enclosure=>2,"\r"=>4,"\n"=>5);
 		$map2=array(""=>0,$delimiter=>1,"\r"=>4,"\n"=>5);
-        for($index=0;$index<$length;){
+        for(;$index<$length;){
 			$c=@$str[$index];
 			if(isset($map[$c])){
 				switch($map[$c]){
@@ -449,7 +498,7 @@ N1:							switch($c){
 						$index++;
 						for(;$index<$length;$index++){
 							$c=@$str[$index];
-N2:							if(isset($map[$c])){
+							if(isset($map[$c])){
 								switch($map[$c]){
 									case 0:
 										continue 4;//at the end,still cannot find matched $enclosure
@@ -465,16 +514,6 @@ N2:							if(isset($map[$c])){
 											}
 											$s.=\substr($str,$old_index,$index-$old_index);
 											continue 4;
-										}
-									continue 2;
-									case 3:
-										$c2=@$str[++$index];
-										if($c2===$enclosure){
-											$s.=$enclosure;
-										}else{
-											$s.=$c;
-											$c=$c2;
-											goto N2;
 										}
 									continue 2;
 								}
@@ -528,7 +567,7 @@ N2:							if(isset($map[$c])){
 				}
 			}
 			$s=\substr($str,$old_index,$index-$old_index);
-			if($s===$null){
+			if(isset($map3[$s])){
 				$s=NULL;
 			}
         }
