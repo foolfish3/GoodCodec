@@ -3,6 +3,22 @@ namespace GoodCodec;
 
 class GoodCodec{
 	
+	function mysql_escape_str($str) {
+		if($str===NULL){
+			return "NULL";
+		}else{
+			return "'".strtr($str,array("\000"=>"\\0","\n"=>"\\n","\r"=>"\\r","\\"=>"\\\\","'"=>"\\'","\""=>"\\\""))."'";
+		}
+	}
+	
+	function mysql_unescape_str($str){
+		if(@$str[0]==="'"){
+			return strtr(substr($str,1,-1),array("\\0"=>"\0","\\n"=>"\n","\\r"=>"\r","\\\\"=>"\\","\\'"=>"'","\\\""=>"\"","\\Z"=>"\032"));
+		}else{
+			return \strcasecmp($str,"NULL")?$str:NULL;
+		}
+	}
+
 	public static function csv_encode_str($str, $null="NULL", $enclosure = "\""){
 		if($str===NULL){
 			return $null;
