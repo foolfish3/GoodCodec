@@ -2,7 +2,7 @@
 namespace GoodCodec;
 
 class GoodCodec{
-	
+
 	function mysql_escape_str($str) {
 		if($str===NULL){
 			return "NULL";
@@ -10,7 +10,7 @@ class GoodCodec{
 			return "'".strtr($str,array("\000"=>"\\0","\n"=>"\\n","\r"=>"\\r","\\"=>"\\\\","'"=>"\\'","\""=>"\\\""))."'";
 		}
 	}
-	
+
 	function mysql_unescape_str($str){
 		if(@$str[0]==="'"){
 			return strtr(substr($str,1,-1),array("\\0"=>"\0","\\n"=>"\n","\\r"=>"\r","\\\\"=>"\\","\\'"=>"'","\\\""=>"\"","\\Z"=>"\032"));
@@ -42,7 +42,7 @@ class GoodCodec{
 		}
 		if($out_charset!=="UTF-8"){
 			return iconv("UTF-8",$out_charset,$s);
-		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80\\xFF]}",$s)){
+		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -80,21 +80,20 @@ class GoodCodec{
 		}
 		if($out_charset!=="UTF-8"){
 			return iconv("UTF-8",$out_charset,$s);
-		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80\\xFF]}",$s)){
+		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
 		}
 	}
 
-	public static function csv_encode_table_excel($data, $out_charset="UTF-8", $in_charset="UTF-8",$null = "", $delimiter = ",", $enclosure = "\"", $newline = "\r\n"){
+	public static function csv_encode_table_excel($data, $out_charset="UTF-8", $in_charset="UTF-8",$append_bom=1,$null = "", $delimiter = ",", $enclosure = "\"", $newline = "\r\n"){
 		if($out_charset===NULL||$out_charset==="UTF-8"||preg_match("{^\\s*utf\\-?8\\s*$}si",$out_charset)){
 			$out_charset="UTF-8";
 		}
 		if($in_charset===NULL||$in_charset==="UTF-8"||preg_match("{^\\s*utf\\-?8\\s*$}si",$in_charset)){
 			$in_charset="UTF-8";
 		}
-		$append_bom=1;
 		$need_iconv=$in_charset!=="UTF-8";
 		$map=array("\t"=>1,"\r"=>1,"\n"=>1,$delimiter=>1,$enclosure=>1);
 		$s="";
@@ -125,9 +124,10 @@ class GoodCodec{
 			}
 			$s.=$newline;
 		}
+
 		if($out_charset!=="UTF-8"){
 			return iconv("UTF-8",$out_charset,$s);
-		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80\\xFF]}",$s)){
+		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -168,7 +168,7 @@ class GoodCodec{
 		}
 		if($out_charset!=="UTF-8"){
 			return iconv("UTF-8",$out_charset,$s);
-		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80\\xFF]}",$s)){
+		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -209,126 +209,6 @@ class GoodCodec{
 		}
 		$s="";
 		$row=array();
-		if($delimiter==="," && $enclosure==="\"" ){//a little fast
-			for(;;){
-				switch($c){
-					case ",":
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						$s="";
-						($c=\fgetc($stream))!==false or $c="";
-					break;
-					case "\"":
-						for(;;){
-							($c=\fgetc($stream))!==false or $c="";
-							switch($c){
-								case "\"":
-									($c=\fgetc($stream))!==false or $c="";
-									if($c==="\""){
-										$s.="\"";
-									}else{
-										for(;;){
-											switch($c){
-												case "\r": case "\n": case "," : case "" :
-												break 2;
-											}
-											$s.=$c;
-											($c=\fgetc($stream))!==false or $c="";
-										}
-										break 2;
-									}
-								break;
-								case ""://at the end,still cannot find matched $enclosure
-								break 2;
-								default:
-									$s.=$c;
-							}
-						}
-					break;
-					case "":
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						if($skip_lines>0){
-							$skip_lines--;
-						}else{
-							(yield $row);
-						}
-					break 2;//=== END ===
-					case "\r":
-						for(;;){
-							($c=\fgetc($stream))!==false or $c="";
-							if($c!=="\n"){
-								break;
-							}
-						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						$s="";
-						if($skip_lines>0){
-							$skip_lines--;
-						}else{
-							(yield $row);
-						}
-						$row=array();
-						if($c===""){
-							break 2;//=== END ===
-						}
-					break;
-					case "\n":
-						for(;;){
-							($c=\fgetc($stream))!==false or $c="";
-							if($c!=="\r"){
-								break;
-							}
-						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						$s="";
-						if($skip_lines>0){
-							$skip_lines--;
-						}else{
-							(yield $row);
-						}
-						$row=array();
-						if($c===""){
-							break 2;//=== END ===
-						}
-					break;
-					default:
-						for(;;){
-							if($detect_bom && $c===$detect_bom){
-								if($detect_bom==="\xEF"){
-									$detect_bom="\xBB";
-								}elseif($detect_bom==="\xBB"){
-									$detect_bom="\xBF";
-								}else{
-									$detect_bom=NULL;
-									$s="";
-									($c=\fgetc($stream))!==false or $c="";
-									if($c===""){
-										break 3;
-									}
-									continue 3;
-								}
-							}else{
-								$detect_bom=NULL;
-							}
-							switch($c){
-								case "\r": case "\n": case "," : case "" :
-								break 2;
-							}
-							$s.=$c;
-							($c=\fgetc($stream))!==false or $c="";
-						}
-						if(isset($map3[$s])){
-							$s=NULL;
-						}
-				}
-			}
-			if($filter){
-				stream_filter_remove($filter);
-			}
-			if($close_stream){
-				\fclose($stream);
-			}
-			return;
-		}
 		$map=array(""=>0,$delimiter=>1,$enclosure=>2,"\r"=>4,"\n"=>5);
 		$map2=array(""=>0,$delimiter=>1,"\r"=>4,"\n"=>5);
         for(;;){
@@ -479,121 +359,6 @@ class GoodCodec{
 		$index=0;
         $s="";
 		$data=$row=array();
-		if($delimiter==="," && $enclosure==="\""){//a little fast
-			for(;;){
-				$c=@$str[$index];
-				switch($c){
-					case ",":
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						$s="";
-						$index++;
-					break;
-					case "\"":
-						for($index++;;$index++){
-							$c=@$str[$index];
-							switch($c){
-								case "\"":
-									$c=@$str[++$index];
-									if($c==="\""){
-										$s.="\"";
-									}else{
-										for(;;){
-											switch($c){
-												case "\r": case "\n": case "," : case "" :
-												break 2;
-											}
-											$s.=$c;
-											$c=@$str[++$index];
-										}
-										break 2;
-									}
-								break;
-								case ""://at the end,still cannot find matched $enclosure
-								break 2;
-								default:
-									$s.=$c;
-							}
-						}
-					break;
-					case "":
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						if($skip_lines>0){
-							$skip_lines--;
-						}else{
-							$data[]=$row;
-						}
-					break 2;//=== END ===
-					case "\r":
-						for(;;){
-							$c=@$str[++$index];
-							if($c!=="\n"){
-								break;
-							}
-						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						$s="";
-						if($skip_lines>0){
-							$skip_lines--;
-						}else{
-							$data[]=$row;
-						}
-						$row=array();
-						if($c===""){
-							break 2;//=== END ===
-						}
-					break;
-					case "\n":
-						for(;;){
-							$c=@$str[++$index];
-							if($c!=="\r"){
-								break;
-							}
-						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
-						$s="";
-						if($skip_lines>0){
-							$skip_lines--;
-						}else{
-							$data[]=$row;
-						}
-						$row=array();
-						if($c===""){
-							break 2;//=== END ===
-						}
-					break;
-					default:
-						for(;;){
-							if($detect_bom && $c===$detect_bom){
-								if($detect_bom==="\xEF"){
-									$detect_bom="\xBB";
-								}elseif($detect_bom==="\xBB"){
-									$detect_bom="\xBF";
-								}else{
-									$detect_bom=NULL;
-									$s="";
-									$c=@$str[++$index];
-									if($c===""){
-										break 2;
-									}
-									continue 2;
-								}
-							}else{
-								$detect_bom=NULL;
-							}
-							switch($c){
-								case "\r": case "\n": case "," : case "" :
-								break 2;
-							}
-							$s.=$c;
-							$c=@$str[++$index];
-						}
-						if(isset($map3[$s])){
-							$s=NULL;
-						}
-				}
-			}
-			return $data;
-		}
 		$map=array(""=>0,$delimiter=>1,$enclosure=>2,"\r"=>4,"\n"=>5);
 		$map2=array(""=>0,$delimiter=>1,"\r"=>4,"\n"=>5);
         for(;;){
@@ -712,3 +477,17 @@ class GoodCodec{
         return $data;
 	}
 }
+/*
+echo(GoodCodec::csv_encode_table([[1,NULL,3,4],[5,6,7,8]]));
+echo(GoodCodec::csv_encode_table([[1,NULL,"a\\\"a",4],[5,6,7,8]]));
+echo(GoodCodec::csv_encode_table([[1,NULL,"a\\\"a",4],["中文",6,7,8]]));
+echo(GoodCodec::csv_encode_table_excel([[1,NULL,3,4],[5,6,7,8]]));
+echo(GoodCodec::csv_encode_table_excel([[1,NULL,"a\\\"a",4],[5,6,7,8]]));
+echo(GoodCodec::csv_encode_table_excel([[1,NULL,"a\\\"a",4],["中文",6,7,8]]));
+$fp = fopen("php://temp/maxmemory:50000000", 'rw');
+fwrite($fp,iconv("UTF-8","GBK","中文"));
+rewind($fp);
+foreach(GoodCodec::csv_decode_stream($fp,1,"GBK") as $row ){
+	var_dump($row);
+}
+*/
