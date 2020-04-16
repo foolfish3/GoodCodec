@@ -24,19 +24,9 @@ complete tested for clickhouse / mysql use
 |BEGIN & END BLANK| as is | as is |
 |ENCODING|SYSTEM(CP936,...) or UTF8-BOM| SYSTEM(CP936,...) |
 
-| |MySQL Import|MySQL Export|
-|----:|:-----|:----|
-|DELIMITER|COMMA(,) |COMMA(,) |
-|LINEBREAK|CRLF CR LF|CRLF|
-|ENCLOSURE|DQUOTE(") |DQUOTE(") noquote as possible|
-|ESCAPE|none|none|
-|NULL| -| -|
-|BEGIN & END BLANK| as is | as is |
-|ENCODING|SYSTEM(CP936,...) or UTF8-BOM| SYSTEM(CP936,...) |
-
 | |ClickHouse Import|ClickHouse Export|
 |----:|:-----|:----|
-|DELIMITER|COMMA(,) |COMMA(,) |
+|DELIMITER|COMMA(,) |COMMA(,)<br>format_csv_delimiter|
 |LINEBREAK|CRLF CR LF|LF|
 |ENCLOSURE|DQUOTE(") |DQUOTE(") quote as possible|
 |ESCAPE|none|none|
