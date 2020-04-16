@@ -2,7 +2,7 @@
 namespace GoodCodec;
 
 class GoodCodec{
-	public const UTF8="UTF-8";
+	const UTF8="UTF-8";
 	protected static $utf8_map=array(
 		"utf-8"=>1,"Utf-8"=>1,"uTf-8"=>1,"UTf-8"=>1,
 		"utF-8"=>1,"UtF-8"=>1,"uTF-8"=>1,"UTF-8"=>1,
