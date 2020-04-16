@@ -24,15 +24,15 @@ complete tested for clickhouse / mysql use
 |BEGIN & END BLANK| as is | as is |
 |ENCODING|SYSTEM(CP936,...) or UTF8-BOM| SYSTEM(CP936,...) |
 
-| |ClickHouse Import|ClickHouse Export|
-|----:|:-----|:----|
-|DELIMITER|COMMA(,) |COMMA(,)<br>format_csv_delimiter|
-|LINEBREAK|CRLF CR LF|LF|
-|ENCLOSURE|DQUOTE(") |DQUOTE(") quote as possible|
-|ESCAPE|none|none|
-|NULL|\N or NULL or an empty unquoted string<br>input_format_csv_unquoted_null_literal_as_null | \N |
-|BEGIN & END BLANK| trim |  |
-|ENCODING|byte|byte|
+| |ClickHouse Import|ClickHouse Export|MySQL|
+|----:|:-----|:----|:----|
+|DELIMITER|COMMA(,) |COMMA(,)<br>format_csv_delimiter|config|
+|LINEBREAK|CRLF CR LF|LF|config|
+|ENCLOSURE|DQUOTE(") |DQUOTE(") quote as possible|config|
+|ESCAPE|none|none|config|
+|NULL|\N or NULL or an empty unquoted string<br>input_format_csv_unquoted_null_literal_as_null | \N |\N or NULL|
+|BEGIN & END BLANK| trim |  |as is|
+|ENCODING|byte|byte| |
 
 | | Excel |MySQL|ClickHouse|PHP|
 |----|-----|----|-----|-----|
