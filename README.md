@@ -32,7 +32,7 @@ complete tested for clickhouse / mysql use
 |ESCAPE|none|none|
 |NULL|\N or NULL or an empty unquoted string<br>input_format_csv_unquoted_null_literal_as_null | \N |
 |BEGIN & END BLANK| trim |  |
-|ENCODING|C|C |
+|ENCODING|byte|byte|
 
 | | Excel |MySQL|ClickHouse|PHP|
 |----|-----|----|-----|-----|
