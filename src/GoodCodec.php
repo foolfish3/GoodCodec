@@ -58,10 +58,10 @@ class GoodCodec{
 	}
 
 	public static function tsv_encode_str($str,$out_charset="UTF-8", $in_charset="UTF-8",$append_bom=0,$null="NULL"){
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$need_iconv=$in_charset!=="UTF-8";
@@ -77,10 +77,10 @@ class GoodCodec{
 	}
 
 	public static function tsv_encode_row($row,$out_charset="UTF-8", $in_charset="UTF-8",$append_bom=0,$null="\\N"){
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$need_iconv=$in_charset!=="UTF-8";
@@ -102,10 +102,10 @@ class GoodCodec{
 	}
 
 	public static function tsv_encode_table($data,$out_charset="UTF-8", $in_charset="UTF-8",$append_bom=0,$null="\\N",$newline="\n"){
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$need_iconv=$in_charset!=="UTF-8";
@@ -132,10 +132,10 @@ class GoodCodec{
 	public static function tsv_decode_stream($stream, $close_stream,$skip_lines=0,$in_charset="UTF-8", $out_charset="UTF-8",$remove_bom=0){
 		static $map=array(0=>0,1=>1,2=>2,3=>3,4=>4,5=>5,6=>6,7=>7,8=>8,9=>9,"a"=>10,"A"=>10,"b"=>11,"B"=>11,"c"=>12,"C"=>12,"d"=>13,"D"=>13,"e"=>14,"E"=>14,"f"=>15,"F"=>15);
 		static $map2=array("b"=>"\x08","f"=>"\x0c","r"=>"\r","n"=>"\n","t"=>"\t","0"=>"\x00","'"=>"'","\\"=>"\\","a"=>"\x07","v"=>"\x0b");
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$detect_bom= $remove_bom && $in_charset==="UTF-8"?"\xEF":NULL;
@@ -146,7 +146,7 @@ class GoodCodec{
 		}
 		if(($c=\fgetc($stream))===false){
 			if($filter){
-				stream_filter_remove($filter);
+				\stream_filter_remove($filter);
 			}
 			if($close_stream){
 				\fclose($stream);
@@ -162,7 +162,7 @@ RESEND:		switch($state){
 				case 0:
 					switch($c){
 						case "":
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							if($skip_lines>0){
 								$skip_lines--;
 							}else{
@@ -179,7 +179,7 @@ RESEND:		switch($state){
 									break;
 								}
 							}
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							$s="";
 							if($skip_lines>0){
 								$skip_lines--;
@@ -193,7 +193,7 @@ RESEND:		switch($state){
 							goto RESEND;
 						break;
 						case "\t":
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							$s="";
 						break;
 						case "\n"://过滤掉后面N个\r
@@ -203,7 +203,7 @@ RESEND:		switch($state){
 									break;
 								}
 							}
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							$s="";
 							if($skip_lines>0){
 								$skip_lines--;
@@ -239,7 +239,7 @@ RESEND:		switch($state){
 				break;
 				case 1:
 					if($c===""){
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -268,7 +268,7 @@ RESEND:		switch($state){
 				break;
 				case 2:
 					if($c===""){
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -281,7 +281,7 @@ RESEND:		switch($state){
 				break;
 				case 3:
 					if($c===""){
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -297,7 +297,7 @@ RESEND:		switch($state){
 			}
 		}
 		if($filter){
-			stream_filter_remove($filter);
+			\stream_filter_remove($filter);
 		}
 		if($close_stream){
 			\fclose($stream);
@@ -312,10 +312,10 @@ RESEND:		switch($state){
 		if($str===""){
 			return array();
 		}
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$detect_bom= $remove_bom && $in_charset==="UTF-8"?"\xEF":NULL;
@@ -333,7 +333,7 @@ RESEND:		switch($state){
 				case 0:
 					switch($c){
 						case "":
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							if($skip_lines>0){
 								$skip_lines--;
 							}else{
@@ -350,7 +350,7 @@ RESEND:		switch($state){
 									break;
 								}
 							}
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							$s="";
 							if($skip_lines>0){
 								$skip_lines--;
@@ -364,7 +364,7 @@ RESEND:		switch($state){
 							goto RESEND;
 						break;
 						case "\t":
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							$s="";
 						break;
 						case "\n"://过滤掉后面N个\r
@@ -374,7 +374,7 @@ RESEND:		switch($state){
 									break;
 								}
 							}
-							$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+							$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 							$s="";
 							if($skip_lines>0){
 								$skip_lines--;
@@ -410,7 +410,7 @@ RESEND:		switch($state){
 				break;
 				case 1:
 					if($c===""){
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -440,7 +440,7 @@ RESEND:		switch($state){
 				break;
 				case 2:
 					if($c===""){
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -454,7 +454,7 @@ RESEND:		switch($state){
 				break;
 				case 3:
 					if($c===""){
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -477,10 +477,10 @@ RESEND:		switch($state){
 		if($str===NULL){
 			return $null;
 		}
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$need_iconv=$in_charset!=="UTF-8";
@@ -504,18 +504,16 @@ RESEND:		switch($state){
 			return $s;
 		}
 	}
-	protected static function isUTF8($str){
-		static $map=array(
-			"utf-8"=>1,"Utf-8"=>1,"uTf-8"=>1,"UTf-8"=>1,
-			"utF-8"=>1,"UtF-8"=>1,"uTF-8"=>1,"UTF-8"=>1,
-		);
-		return isset($map[$str]);
-	}
+
+	protected static $utf8_map=array(
+		"utf-8"=>1,"Utf-8"=>1,"uTf-8"=>1,"UTf-8"=>1,
+		"utF-8"=>1,"UtF-8"=>1,"uTF-8"=>1,"UTF-8"=>1,
+	);
     public static function csv_encode_row($row, $out_charset="UTF-8", $in_charset="UTF-8",$append_bom=0, $null="NULL", $delimiter = ",", $enclosure = "\"",$force_quote=0){
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$s="";
@@ -539,10 +537,10 @@ RESEND:		switch($state){
 	}
 
 	public static function csv_encode_table($data,$out_charset="UTF-8", $in_charset="UTF-8",$append_bom=0,$null="NULL", $delimiter = ",", $enclosure = "\"",$force_quote=0,$newline = "\n"){
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$s="";
@@ -560,10 +558,10 @@ RESEND:		switch($state){
 	}
 
 	public static function csv_decode_stream($stream, $close_stream,$skip_lines=0,$in_charset="UTF-8", $out_charset="UTF-8",$remove_bom=0,$null=array("\N","NULL"), $delimiter = ",", $enclosure = "\""){
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$detect_bom=$remove_bom && $in_charset==="UTF-8"?"\xEF":NULL;
@@ -575,7 +573,7 @@ RESEND:		switch($state){
 		}
 		if(($c=\fgetc($stream))===false){
 			if($filter){
-				stream_filter_remove($filter);
+				\stream_filter_remove($filter);
 			}
 			if($close_stream){
 				\fclose($stream);
@@ -584,7 +582,7 @@ RESEND:		switch($state){
 		}
 		if($null===NULL){
 			$null=array("\N","NULL");
-		}elseif(is_scalar($null)){
+		}elseif(\is_scalar($null)){
 			$null=array($null);
 		}
 		$map3=array();
@@ -599,7 +597,7 @@ RESEND:		switch($state){
 			if(isset($map[$c])){
 				switch($map[$c]){
 					case 0:
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -607,7 +605,7 @@ RESEND:		switch($state){
 						}
 					break 2;
 					case 1://,
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						$s="";
 						($c=\fgetc($stream))!==false or $c="";
 					continue 2;
@@ -646,7 +644,7 @@ RESEND:		switch($state){
 								break;
 							}
 						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						$s="";
 						if($skip_lines>0){
 							$skip_lines--;
@@ -665,7 +663,7 @@ RESEND:		switch($state){
 								break;
 							}
 						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						$s="";
 						if($skip_lines>0){
 							$skip_lines--;
@@ -708,7 +706,7 @@ RESEND:		switch($state){
 			}
 		}
 		if($filter){
-			stream_filter_remove($filter);
+			\stream_filter_remove($filter);
 		}
 		if($close_stream){
 			\fclose($stream);
@@ -720,10 +718,10 @@ RESEND:		switch($state){
 		if($str===""){
 			return array();
 		}
-		if($out_charset==="UTF-8"||$out_charset===NULL||self::isUTF8($out_charset)){
+		if($out_charset==="UTF-8"||$out_charset===NULL||isset(self::$utf8_map[$out_charset])){
 			$out_charset="UTF-8";
 		}
-		if($in_charset==="UTF-8"||$in_charset===NULL||self::isUTF8($in_charset)){
+		if($in_charset==="UTF-8"||$in_charset===NULL||isset(self::$utf8_map[$in_charset])){
 			$in_charset="UTF-8";
 		}
 		$detect_bom= $remove_bom && $in_charset==="UTF-8"?"\xEF":NULL;
@@ -733,7 +731,7 @@ RESEND:		switch($state){
 		}
 		if($null===NULL){
 			$null=array("\N","NULL");
-		}elseif(is_scalar($null)){
+		}elseif(\is_scalar($null)){
 			$null=array($null);
 		}
 		$map3=array();
@@ -751,7 +749,7 @@ RESEND:		switch($state){
 			if(isset($map[$c])){
 				switch($map[$c]){
 					case 0:
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						if($skip_lines>0){
 							$skip_lines--;
 						}else{
@@ -759,7 +757,7 @@ RESEND:		switch($state){
 						}
 					break 2;
 					case 1:
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						$s="";
 						$index++;
 					continue 2;
@@ -798,7 +796,7 @@ RESEND:		switch($state){
 								break;
 							}
 						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						$s="";
 						if($skip_lines>0){
 							$skip_lines--;
@@ -817,7 +815,7 @@ RESEND:		switch($state){
 								break;
 							}
 						}
-						$row[]=$need_iconv&&$s!==NULL?iconv("UTF-8",$out_charset,$s):$s;
+						$row[]=$need_iconv&&$s!==NULL?\iconv("UTF-8",$out_charset,$s):$s;
 						$s="";
 						if($skip_lines>0){
 							$skip_lines--;
@@ -1090,12 +1088,12 @@ RESEND:		switch($state){
 		$ar = array();
 		foreach ($itr as $row) {
 			$ar[] = $converter === NULL ? $row : $converter($row);
-			if (count($ar) >= $size) {
+			if (\count($ar) >= $size) {
 				(yield $ar);
 				$ar = array();
 			}
 		}
-		if (count($ar) >= 0) {
+		if (\count($ar) >= 0) {
 			(yield $ar);
 		}
 	}
