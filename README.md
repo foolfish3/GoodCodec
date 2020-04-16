@@ -34,13 +34,16 @@ complete tested for clickhouse / mysql use
 |BEGIN & END BLANK| trim |  |as is|
 |ENCODING|byte|byte|UTF-8|
 
-| | Excel |MySQL|ClickHouse|PHP|
-|----|-----|----|-----|-----|
-|DELIMITER|COMMA(,) |config|COMMA(,) |config|
-|LINEBREAK|CRLF(\r\n)|config|CRLF(\r\n) |SYSTEM PHP_EOL<br>auto_detect_line_endings|
-|ENCLOSURE|DQUOTE(") | |DQUOTE(")|DQUOTE(") |
-|QUOTE| noquote as possible | | string/date->quote<br>number->noquote | \\x20 \\t \\r \\n \\" \\\\ , |
-|ESCAPE|none| |none |BACKSLASH(\\) |
-|NULL| -- | \N, NULL | \N, NULL,<br>  empty string without quote| -- |
-|BEGIN & END BLANK| as is | as is | trim | as is |
-|ENCODING|SYSTEM(CP936,...) <br> or UTF8-BOM| UTF-8 | UTF-8 | SYSTEM,<br> setlocale(LC_CTYPE,"C") |
+## why not use php function fgetcsv fputcsv str_getcsv
+
+1. must set locale with setlocale(LC_CTYPE,"C") or CP936 UTF-8, and country, so hard, and not easy
+1. working with string must use fopen fputcsv fclose
+1. bom support?
+1. null value support? cannot distinguish quote or unquote value,it's important for null value
+1. str_getcsv cannot line by line try str_getcsv("1,2,\r\n3,4\n\n\n\n\n1")?
+
+## aim to do 
+
+1. can import data from excel, MySQL, ClickHouse with default setting 
+1. can output data to excel, MySQL, ClickHouse with their default setting
+1. so ESCAPE is not support in CSV (consider TSV for MySQL)
