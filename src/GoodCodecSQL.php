@@ -86,7 +86,7 @@ class GoodCodecSQL{
 		return $map;
 	}
 
-	private static function get_next_blank($str,$index){
+	private static function get_next_whitespace($str,$index){
 		$s=@$str[$index];
 		for(;;){
 			$c=@$str[++$index];
@@ -214,7 +214,7 @@ class GoodCodecSQL{
 				break;
 				case "\r":case "\n":case " ":case "\t":
 					if($s!==""){$ss[]=$s;$s="";}
-                    list($r,$index)=self::get_next_blank($str,$index);
+                    list($r,$index)=self::get_next_whitespace($str,$index);
                     $ss[]=$r;
 				break;
                 case ""://END
