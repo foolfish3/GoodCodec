@@ -1,6 +1,8 @@
 # GoodCodec
 fast csv / tsv / mysql quote encoder and decoder
-mysql generate sql with bind param
+
+mysql generate sql with bind param, generate values
+
 complete tested for clickhouse / mysql use
 
 # CSV
@@ -46,4 +48,4 @@ complete tested for clickhouse / mysql use
 
 1. can import data from excel, MySQL, ClickHouse with default setting 
 1. can output data to excel, MySQL, ClickHouse with their default setting
-1. so ESCAPE is not support in CSV (consider TSV for MySQL)
+1. so ESCAPE is not support in CSV (consider TSV for MySQL import & export)
