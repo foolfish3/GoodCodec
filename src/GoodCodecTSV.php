@@ -20,7 +20,7 @@ class GoodCodecTSV{
 			return $null;
 		}
 		$s=\strtr($need_iconv?\iconv($in_charset,"UTF-8",$str):(string)$str,array("\x08"=>"\\b","\x0c"=>"\\f","\r"=>"\\r","\n"=>"\\n","\t"=>"\\t","\x00"=>"\0","'"=>"\\'","\\"=>"\\\\"));
-		if($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
+		if($append_bom && $out_charset==="UTF-8" && \preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -45,7 +45,7 @@ class GoodCodecTSV{
 			}
 			$s.=\strtr($need_iconv?\iconv($in_charset,"UTF-8",$str):(string)$str,array("\x08"=>"\\b","\x0c"=>"\\f","\r"=>"\\r","\n"=>"\\n","\t"=>"\\t","\x00"=>"\0","'"=>"\\'","\\"=>"\\\\"));
 		}
-		if($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
+		if($append_bom && $out_charset==="UTF-8" && \preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -73,7 +73,7 @@ class GoodCodecTSV{
 			}
 			$s.=$newline;
 		}
-		if($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
+		if($append_bom && $out_charset==="UTF-8" && \preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -393,8 +393,9 @@ class GoodCodecTSV{
                         $state=2;
                         $c=@$str[++$index];
 					}else if($c=="N"){
-						if($s!==""){//TODO check it \N in string,what will happen
-							$s.=$c;
+						if($s!==""){
+                            \trigger_error("found \\N in part of string,it's not a normal way");
+                            $s.=$c;
                             $state=0;
                             $c=@$str[++$index];
 						}else{
@@ -413,6 +414,7 @@ class GoodCodecTSV{
                                     $state=0;
                                     continue 3;
                             }
+                            \trigger_error("found \\N in part of string,it's not a normal way");
                             $s.="N";
 							$state=0;
 						}

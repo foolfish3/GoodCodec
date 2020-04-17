@@ -33,7 +33,7 @@ class GoodCodecCSV{
 		}
 		if($out_charset!=="UTF-8"){
 			return iconv("UTF-8",$out_charset,$s);
-		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
+		}elseif($append_bom && $out_charset==="UTF-8" && \preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -56,7 +56,7 @@ class GoodCodecCSV{
 		}
 		if($out_charset!=="UTF-8"){
 			return iconv("UTF-8",$out_charset,$s);
-		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
+		}elseif($append_bom && $out_charset==="UTF-8" && \preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
@@ -81,7 +81,7 @@ class GoodCodecCSV{
 		}
 		if($out_charset!=="UTF-8"){
 			return iconv("UTF-8",$out_charset,$s);
-		}elseif($append_bom && $out_charset==="UTF-8" && preg_match("{[\\x80-\\xFF]}",$s)){
+		}elseif($append_bom && $out_charset==="UTF-8" && \preg_match("{[\\x80-\\xFF]}",$s)){
 			return "\xEF\xBB\xBF".$s;
 		}else{
 			return $s;
