@@ -7,7 +7,7 @@ class GoodCodec{
 		"utf-8"=>1,"Utf-8"=>1,"uTf-8"=>1,"UTf-8"=>1,
 		"utF-8"=>1,"UtF-8"=>1,"uTF-8"=>1,"UTF-8"=>1,
 	);
-	function mysql_encode_str($str,$noquote=0) {
+	public static function mysql_encode_str($str,$noquote=0) {
 		return GoodCodecSQL::mysql_encode_str($str,$noquote);
 	}
 
@@ -15,7 +15,7 @@ class GoodCodec{
 		return GoodCodecSQL::mysql_encode_row($row,$noquote);
 	}
 
-	function mysql_decode_str($str){
+	public static function mysql_decode_str($str){
 		return GoodCodecSQL::mysql_encode_str($str);
 	}
 
