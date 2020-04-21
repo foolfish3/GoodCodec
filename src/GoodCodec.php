@@ -9,6 +9,13 @@ class GoodCodec
         "utf-8" => 1, "Utf-8" => 1, "uTf-8" => 1, "UTf-8" => 1,
         "utF-8" => 1, "UtF-8" => 1, "uTF-8" => 1, "UTF-8" => 1,
     );
+
+    public static function cut_to_pieces($itr, $converter, $size = NULL)
+    {
+        return GoodCodecSQL::cut_to_pieces($itr, $converter, $size);
+    }
+
+
     public static function mysql_encode_str($str, $noquote = 0)
     {
         return GoodCodecSQL::mysql_encode_str($str, $noquote);

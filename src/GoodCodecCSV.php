@@ -35,7 +35,7 @@ class GoodCodecCSV
             $s = $quote ? $enclosure . \strtr($str, array($enclosure => $enclosure . $enclosure)) . $enclosure : $str;
         }
         if ($out_charset !== "UTF-8") {
-            return iconv("UTF-8", $out_charset, $s);
+            return \iconv("UTF-8", $out_charset, $s);
         } elseif ($append_bom && $out_charset === "UTF-8" && \preg_match("{[\\x80-\\xFF]}", $s)) {
             return "\xEF\xBB\xBF" . $s;
         } else {
@@ -59,7 +59,7 @@ class GoodCodecCSV
             $s .= self::csv_encode_str($str, "UTF-8", $in_charset, 0, $null, $delimiter, $enclosure, $force_quote);
         }
         if ($out_charset !== "UTF-8") {
-            return iconv("UTF-8", $out_charset, $s);
+            return \iconv("UTF-8", $out_charset, $s);
         } elseif ($append_bom && $out_charset === "UTF-8" && \preg_match("{[\\x80-\\xFF]}", $s)) {
             return "\xEF\xBB\xBF" . $s;
         } else {
@@ -86,7 +86,7 @@ class GoodCodecCSV
             $s .= $newline;
         }
         if ($out_charset !== "UTF-8") {
-            return iconv("UTF-8", $out_charset, $s);
+            return \iconv("UTF-8", $out_charset, $s);
         } elseif ($append_bom && $out_charset === "UTF-8" && \preg_match("{[\\x80-\\xFF]}", $s)) {
             return "\xEF\xBB\xBF" . $s;
         } else {
@@ -266,7 +266,7 @@ class GoodCodecCSV
         $detect_bom = $remove_bom && $in_charset === "UTF-8" ? "\xEF" : NULL;
         $need_iconv = $out_charset === "UTF-8";
         if ($in_charset !== "UTF-8") {
-            $str = iconv($in_charset, "UTF-8", $str);
+            $str = \iconv($in_charset, "UTF-8", $str);
         }
         if ($null === NULL) {
             $null = array("\N", "NULL");
