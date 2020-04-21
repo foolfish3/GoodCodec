@@ -280,7 +280,6 @@ class GoodCodecCSV
         $index = 0;
         $s = "";
         $data = $row = array();
-        //$map=array(""=>0,$delimiter=>1,$enclosure=>2,"\r"=>4,"\n"=>5);
         $map = array("" => 0, $delimiter => 1, $enclosure => 2, "\r" => 4, "\n" => 5);
         $map2 = array("" => 0, $delimiter => 1, "\r" => 4, "\n" => 5);
         for (;;) {

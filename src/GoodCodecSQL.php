@@ -15,7 +15,7 @@ class GoodCodecSQL
         if ($str === NULL) {
             return "NULL";
         } else {
-            return $noquote ? $str : "'" . strtr($str, array("\000" => "\\0", "\n" => "\\n", "\r" => "\\r", "\\" => "\\\\", "'" => "\\'", "\"" => "\\\"")) . "'";
+            return $noquote ? $str : "'" . \strtr($str, array("\000" => "\\0", "\n" => "\\n", "\r" => "\\r", "\\" => "\\\\", "'" => "\\'", "\"" => "\\\"")) . "'";
         }
     }
 
@@ -44,7 +44,7 @@ class GoodCodecSQL
     function mysql_decode_str($str)
     {
         if (@$str[0] === "'") {
-            return strtr(substr($str, 1, -1), array("\\0" => "\0", "\\n" => "\n", "\\r" => "\r", "\\\\" => "\\", "\\'" => "'", "\\\"" => "\"", "\\Z" => "\032"));
+            return \strtr(substr($str, 1, -1), array("\\0" => "\0", "\\n" => "\n", "\\r" => "\r", "\\\\" => "\\", "\\'" => "'", "\\\"" => "\"", "\\Z" => "\032"));
         } else {
             return \strcasecmp($str, "NULL") ? $str : NULL;
         }
@@ -332,7 +332,7 @@ class GoodCodecSQL
         }
         if (isset($args[1]) && is_array($args[1])) {
             foreach ($args[1] as $k => &$v) {
-                if (preg_match("{^\\d+$}", $k)) {
+                if (\preg_match("{^\\d+$}", $k)) {
                     $bind_param[$k + 1] = $v;
                 } else {
                     $bind_param[$k] = $v;
@@ -373,6 +373,6 @@ class GoodCodecSQL
                 }
             }
         }
-        return implode($ss);
+        return \implode($ss);
     }
 }
