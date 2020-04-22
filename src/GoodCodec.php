@@ -73,6 +73,11 @@ class GoodCodec
         return GoodCodecCSV::csv_encode_table_excel($data, $out_charset);
     }
 
+    public static function csv_encode_table_clickhouse($data)
+    {
+        return GoodCodecCSV::csv_encode_table_clickhouse($data);
+    }
+
     public static function csv_encode_table($data, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0, $newline = "\n")
     {
         return GoodCodecCSV::csv_encode_table($data, $out_charset, $in_charset, $append_bom, $null, $delimiter, $enclosure, $force_quote, $newline);

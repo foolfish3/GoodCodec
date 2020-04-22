@@ -72,6 +72,11 @@ class GoodCodecCSV
         return self::csv_encode_table($data, $out_charset, "UTF-8", 1, "", ",", "\"", 0, "\r\n");
     }
 
+    public static function csv_encode_table_clickhouse($data)
+    {
+        return self::csv_encode_table($data, "UTF-8", "UTF-8", 0, "\\N", ",", "\"", 1, "\n");
+    }
+
     public static function csv_encode_table($data, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0, $newline = "\n")
     {
         if ($out_charset === "UTF-8" || $out_charset === NULL || isset(self::$utf8_map[$out_charset])) {
