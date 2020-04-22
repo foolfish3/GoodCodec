@@ -30,11 +30,13 @@ complete tested for clickhouse / mysql use
 |----:|:-----|:----|:----|
 |DELIMITER|COMMA(,) |COMMA(,)<br>format_csv_delimiter|config|
 |LINEBREAK|CRLF CR LF|LF|config|
-|ENCLOSURE|DQUOTE(") |DQUOTE(") quote as possible|config|
+|ENCLOSURE|DQUOTE(")/QUOTE(')|DQUOTE(") quote as possible|config|
 |ESCAPE|none|none|config|
-|NULL|\N => NULL <br> NULL => 'NULL' <br> an empty unquoted string => DEFAULT VALUE <br> input_format_csv_unquoted_null_literal_as_null <br>input_format_defaults_for_omitted_fields| \N |\N or NULL|
+|NULL|\N => NULL <br> NULL => 'NULL' <br> empty unquoted string => DEFAULT VALUE <br> input_format_csv_unquoted_null_literal_as_null <br>input_format_defaults_for_omitted_fields| \N |\N or NULL|
 |BEGIN & END BLANK| trim |  |as is|
 |ENCODING|byte|byte|UTF-8|
+
+so QUOTE('),empty string, string with BEGIN & END BLANK MUST BE QUOTED in ClickHouse Import
 
 ## why not use php function fgetcsv fputcsv str_getcsv
 
