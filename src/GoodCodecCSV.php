@@ -10,6 +10,9 @@ class GoodCodecCSV
         "utF-8" => 1, "UtF-8" => 1, "uTF-8" => 1, "UTF-8" => 1,
     );
 
+    //$force_quote 0 try to noquote everything but for clickhouse import compatible
+    //$force_quote 1 quote everything
+    //$force_quote 2 try to noquote everything,same as excel
     public static function csv_encode_str($str, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
     {
         if ($str === NULL) {
@@ -25,12 +28,20 @@ class GoodCodecCSV
         if ($str === NULL) {
             $s = $null;
         } elseif ($str === "") {
-            $s = "$enclosure$enclosure";
+            $s = $force_quote == 2 ? "" : "$enclosure$enclosure";
         } else {
-            $quote = $force_quote;
-            if (!$force_quote && \is_string($str)) {
+            $quote = 0;
+            if ($force_quote == 1) {
+                $quote = 1;
+            } elseif (!\is_string($str)) {
+            } elseif ($force_quote == 0) { //try to noquote everything but for clickhouse import compatible
                 $str = $need_iconv ? \iconv($in_charset, "UTF-8", $str) : $str;
-                $quote = \strpbrk($str, "\r\n\\'\",$enclosure$delimiter") !== false;
+                $quote = \strpbrk($str, " \t\r\n\\'\",$enclosure$delimiter") !== false;
+            } elseif ($force_quote == 2) { //try to noquote everything,same as excel
+                $str = $need_iconv ? \iconv($in_charset, "UTF-8", $str) : $str;
+                $quote = \strpbrk($str, "\r\n$enclosure$delimiter") !== false;
+            } else {
+                throw new \ErrorException("BUG");
             }
             $s = $quote ? $enclosure . \strtr($str, array($enclosure => $enclosure . $enclosure)) . $enclosure : $str;
         }
@@ -69,12 +80,7 @@ class GoodCodecCSV
 
     public static function csv_encode_table_excel($data, $out_charset = "UTF-8")
     {
-        return self::csv_encode_table($data, $out_charset, "UTF-8", 1, "", ",", "\"", 0, "\r\n");
-    }
-
-    public static function csv_encode_table_clickhouse($data)
-    {
-        return self::csv_encode_table($data, "UTF-8", "UTF-8", 0, "\\N", ",", "\"", 1, "\n");
+        return self::csv_encode_table($data, $out_charset, "UTF-8", 1, "", ",", "\"", 2, "\r\n");
     }
 
     public static function csv_encode_table($data, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0, $newline = "\n")

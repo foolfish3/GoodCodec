@@ -310,10 +310,14 @@ class GoodCodecSQL
         if ($size === NULL) {
             list($converter, $size) = array(NULL, $converter);
         }
+        if($size === NULL && $converter === NULL && \is_array($itr)){
+            (yield $itr);
+            return;
+        }
         $ar = array();
         foreach ($itr as $row) {
             $ar[] = $converter === NULL ? $row : $converter($row);
-            if (\count($ar) >= $size) {
+            if ($size!==NULL && \count($ar) >= $size) {
                 (yield $ar);
                 $ar = array();
             }
