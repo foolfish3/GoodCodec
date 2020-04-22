@@ -32,7 +32,7 @@ complete tested for clickhouse / mysql use
 |LINEBREAK|CRLF CR LF|LF|config|
 |ENCLOSURE|DQUOTE(") |DQUOTE(") quote as possible|config|
 |ESCAPE|none|none|config|
-|NULL|\N or NULL or an empty unquoted string<br>input_format_csv_unquoted_null_literal_as_null | \N |\N or NULL|
+|NULL|\N => NULL <br> NULL => 'NULL' <br> an empty unquoted string => DEFAULT VALUE <br> input_format_csv_unquoted_null_literal_as_null <br>input_format_defaults_for_omitted_fields| \N |\N or NULL|
 |BEGIN & END BLANK| trim |  |as is|
 |ENCODING|byte|byte|UTF-8|
 
