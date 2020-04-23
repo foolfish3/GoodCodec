@@ -13,17 +13,23 @@ class GoodCodecCSV
     //$force_quote 0 try to noquote everything but for clickhouse import compatible
     //$force_quote 1 quote everything
     //$force_quote 2 try to noquote everything,same as excel
-    public static function csv_encode_str($str, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
+    public static function csv_encode_str($str, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "\\N", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
     {
-        if ($str === NULL) {
-            return $null;
-        }
         if ($out_charset === "UTF-8" || $out_charset === NULL || isset(self::$utf8_map[$out_charset])) {
             $out_charset = "UTF-8";
         }
         if ($in_charset === "UTF-8" || $in_charset === NULL || isset(self::$utf8_map[$in_charset])) {
             $in_charset = "UTF-8";
         }
+        $append_bom = isset($append_bom) ? $append_bom : 0;
+        $null = isset($null) ? $null : "\\N";
+        $delimiter = isset($delimiter) ? $delimiter : ",";
+        $enclosure = isset($enclosure) ? $enclosure : "\"";
+        $force_quote = isset($force_quote) ? $force_quote : 0;
+        if ($str === NULL) {
+            return $null;
+        }
+
         $need_iconv = $in_charset !== "UTF-8";
         if ($str === NULL) {
             $s = $null;
@@ -54,7 +60,7 @@ class GoodCodecCSV
         }
     }
 
-    public static function csv_encode_row($row, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
+    public static function csv_encode_row($row, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "\\N", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
     {
         if ($out_charset === "UTF-8" || $out_charset === NULL || isset(self::$utf8_map[$out_charset])) {
             $out_charset = "UTF-8";
@@ -62,6 +68,11 @@ class GoodCodecCSV
         if ($in_charset === "UTF-8" || $in_charset === NULL || isset(self::$utf8_map[$in_charset])) {
             $in_charset = "UTF-8";
         }
+        $append_bom = isset($append_bom) ? $append_bom : 0;
+        $null = isset($null) ? $null : "\\N";
+        $delimiter = isset($delimiter) ? $delimiter : ",";
+        $enclosure = isset($enclosure) ? $enclosure : "\"";
+        $force_quote = isset($force_quote) ? $force_quote : 0;
         $s = "";
         foreach ($row as $idx => $str) {
             if ($idx !== 0) {
@@ -83,7 +94,7 @@ class GoodCodecCSV
         return self::csv_encode_table($data, $out_charset, "UTF-8", 1, "", ",", "\"", 2, "\r\n");
     }
 
-    public static function csv_encode_table($data, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0, $newline = "\n")
+    public static function csv_encode_table($data, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "\\N", $delimiter = ",", $enclosure = "\"", $force_quote = 0, $newline = "\n")
     {
         if ($out_charset === "UTF-8" || $out_charset === NULL || isset(self::$utf8_map[$out_charset])) {
             $out_charset = "UTF-8";
@@ -91,6 +102,12 @@ class GoodCodecCSV
         if ($in_charset === "UTF-8" || $in_charset === NULL || isset(self::$utf8_map[$in_charset])) {
             $in_charset = "UTF-8";
         }
+        $append_bom = isset($append_bom) ? $append_bom : 0;
+        $null = isset($null) ? $null : "\\N";
+        $delimiter = isset($delimiter) ? $delimiter : ",";
+        $enclosure = isset($enclosure) ? $enclosure : "\"";
+        $force_quote = isset($force_quote) ? $force_quote : 0;
+        $newline = isset($newline) ? $newline : "\n";
         $s = "";
         foreach ($data as $row) {
             $s .= self::csv_encode_row($row, "UTF-8", $in_charset, 0, $null, $delimiter, $enclosure, $force_quote);
@@ -105,7 +122,7 @@ class GoodCodecCSV
         }
     }
 
-    public static function csv_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\N", "NULL"), $delimiter = ",", $enclosure = "\"")
+    public static function csv_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\N"), $delimiter = ",", $enclosure = "\"")
     {
         if ($out_charset === "UTF-8" || $out_charset === NULL || isset(self::$utf8_map[$out_charset])) {
             $out_charset = "UTF-8";
@@ -113,6 +130,14 @@ class GoodCodecCSV
         if ($in_charset === "UTF-8" || $in_charset === NULL || isset(self::$utf8_map[$in_charset])) {
             $in_charset = "UTF-8";
         }
+        $remove_bom = isset($remove_bom) ? $remove_bom : 0;
+        if ($null === NULL) {
+            $null = array("\N");
+        } elseif (\is_scalar($null)) {
+            $null = array($null);
+        }
+        $delimiter = isset($delimiter) ? $delimiter : ",";
+        $enclosure = isset($enclosure) ? $enclosure : "\"";
         $detect_bom = $remove_bom && $in_charset === "UTF-8" ? "\xEF" : NULL;
         $need_iconv = $out_charset === "UTF-8";
         //convert.iconv.<input-encoding>.<output-encoding>
@@ -128,11 +153,6 @@ class GoodCodecCSV
                 \fclose($stream);
             }
             return;
-        }
-        if ($null === NULL) {
-            $null = array("\N", "NULL");
-        } elseif (\is_scalar($null)) {
-            $null = array($null);
         }
         $map3 = array();
         foreach ($null as $v) {
@@ -263,7 +283,7 @@ class GoodCodecCSV
         return;
     }
 
-    public static function csv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\N", "NULL"), $delimiter = ",", $enclosure = "\"")
+    public static function csv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\\N"), $delimiter = ",", $enclosure = "\"")
     {
         if ($str === "") {
             return array();
@@ -274,15 +294,18 @@ class GoodCodecCSV
         if ($in_charset === "UTF-8" || $in_charset === NULL || isset(self::$utf8_map[$in_charset])) {
             $in_charset = "UTF-8";
         }
+        $remove_bom = isset($remove_bom) ? $remove_bom : 0;
+        if ($null === NULL) {
+            $null = array("\N");
+        } elseif (\is_scalar($null)) {
+            $null = array($null);
+        }
+        $delimiter = isset($delimiter) ? $delimiter : ",";
+        $enclosure = isset($enclosure) ? $enclosure : "\"";
         $detect_bom = $remove_bom && $in_charset === "UTF-8" ? "\xEF" : NULL;
         $need_iconv = $out_charset === "UTF-8";
         if ($in_charset !== "UTF-8") {
             $str = \iconv($in_charset, "UTF-8", $str);
-        }
-        if ($null === NULL) {
-            $null = array("\N", "NULL");
-        } elseif (\is_scalar($null)) {
-            $null = array($null);
         }
         $map3 = array();
         foreach ($null as $v) {
