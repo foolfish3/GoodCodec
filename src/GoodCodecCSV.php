@@ -39,7 +39,7 @@ class GoodCodecCSV
             $quote = 0;
             if ($force_quote == 1) {
                 $quote = 1;
-            } elseif (!\is_string($str)) {
+            //} elseif (!\is_string($str)) {
             } elseif ($force_quote == 0) { //try to noquote everything but for clickhouse import compatible
                 $str = $need_iconv ? \iconv($in_charset, "UTF-8", $str) : $str;
                 $quote = \strpbrk($str, " \t\r\n\\'\",$enclosure$delimiter") !== false;
