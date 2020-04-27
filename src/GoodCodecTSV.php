@@ -124,7 +124,7 @@ class GoodCodecTSV
                             } else {
                                 (yield $row);
                             }
-                            break 2; //END no \n but END
+                            break 3; //END no \n but END
                         case "\\":
                             $state = 1;
                             ($c = \fgetc($stream)) !== false or $c = "";
@@ -313,7 +313,7 @@ class GoodCodecTSV
                             } else {
                                 $data[] = $row;
                             }
-                            break 2; //END no \n but END
+                            break 3; //END no \n but END
                         case "\\":
                             $state = 1;
                             $c = @$str[++$index];
