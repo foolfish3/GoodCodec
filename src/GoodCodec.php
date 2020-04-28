@@ -28,7 +28,7 @@ class GoodCodec
 
     public static function mysql_decode_str($str)
     {
-        return GoodCodecSQL::mysql_encode_str($str);
+        return GoodCodecSQL::mysql_decode_str($str);
     }
 
     public static function tsv_encode_str($str, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL")
