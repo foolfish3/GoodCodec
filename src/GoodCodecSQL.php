@@ -41,7 +41,7 @@ class GoodCodecSQL
         return $s;
     }
 
-    function mysql_decode_str($str)
+    public static function mysql_decode_str($str)
     {
         if (@$str[0] === "'") {
             return \strtr(substr($str, 1, -1), array("\\0" => "\0", "\\n" => "\n", "\\r" => "\r", "\\\\" => "\\", "\\'" => "'", "\\\"" => "\"", "\\Z" => "\032"));
