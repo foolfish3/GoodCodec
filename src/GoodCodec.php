@@ -15,7 +15,6 @@ class GoodCodec
         return GoodCodecSQL::cut_to_pieces($itr, $converter, $size);
     }
 
-
     public static function mysql_encode_str($str, $noquote = 0)
     {
         return GoodCodecSQL::mysql_encode_str($str, $noquote);
@@ -58,12 +57,24 @@ class GoodCodec
         return GoodCodecTSV::tsv_decode_str($str, $skip_lines, $in_charset, $out_charset, $remove_bom);
     }
 
-    public static function csv_encode_str($str, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
+    public static function tsv_fast_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
+    {
+        foreach (GoodCodecTSV::tsv_fast_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom) as $row) {
+            (yield $row);
+        }
+    }
+
+    public static function tsv_fast_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
+    {
+        return GoodCodecTSV::tsv_fast_decode_str($str, $skip_lines, $in_charset, $out_charset, $remove_bom);
+    }
+
+    public static function csv_encode_str($str, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "\\N", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
     {
         return GoodCodecCSV::csv_encode_str($str, $out_charset, $in_charset, $append_bom, $null, $delimiter, $enclosure, $force_quote);
     }
 
-    public static function csv_encode_row($row, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
+    public static function csv_encode_row($row, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "\\N", $delimiter = ",", $enclosure = "\"", $force_quote = 0)
     {
         return GoodCodecCSV::csv_encode_row($row, $out_charset, $in_charset, $append_bom, $null, $delimiter, $enclosure, $force_quote);
     }
@@ -73,24 +84,19 @@ class GoodCodec
         return GoodCodecCSV::csv_encode_table_excel($data, $out_charset);
     }
 
-    public static function csv_encode_table_clickhouse($data)
-    {
-        return GoodCodecCSV::csv_encode_table_clickhouse($data);
-    }
-
-    public static function csv_encode_table($data, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "NULL", $delimiter = ",", $enclosure = "\"", $force_quote = 0, $newline = "\n")
+    public static function csv_encode_table($data, $out_charset = "UTF-8", $in_charset = "UTF-8", $append_bom = 0, $null = "\\N", $delimiter = ",", $enclosure = "\"", $force_quote = 0, $newline = "\n")
     {
         return GoodCodecCSV::csv_encode_table($data, $out_charset, $in_charset, $append_bom, $null, $delimiter, $enclosure, $force_quote, $newline);
     }
 
-    public static function csv_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\N", "NULL"), $delimiter = ",", $enclosure = "\"")
+    public static function csv_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\N"), $delimiter = ",", $enclosure = "\"")
     {
         foreach (GoodCodecCSV::csv_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom, $null, $delimiter, $enclosure) as $row) {
             (yield $row);
         }
     }
 
-    public static function csv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\N", "NULL"), $delimiter = ",", $enclosure = "\"")
+    public static function csv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\\N"), $delimiter = ",", $enclosure = "\"")
     {
         return GoodCodecCSV::csv_decode_str($str, $skip_lines, $in_charset, $out_charset, $remove_bom, $null, $delimiter, $enclosure);
     }

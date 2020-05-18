@@ -20,13 +20,17 @@ class GoodCodecTSV
         }
         $need_iconv = $in_charset !== "UTF-8";
         if ($str === NULL) {
-            return $null;
-        }
-        $s = \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\0", "'" => "\\'", "\\" => "\\\\"));
-        if ($append_bom && $out_charset === "UTF-8" && \preg_match("{[\\x80-\\xFF]}", $s)) {
-            return "\xEF\xBB\xBF" . $s;
+            $s = $null;
         } else {
+            $s = \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
+        }
+        if ($out_charset === "UTF-8") {
+            if ($append_bom && \preg_match("{[\\x80-\\xFF]}", $s)) {
+                return "\xEF\xBB\xBF" . $s;
+            }
             return $s;
+        } else {
+            return \iconv("UTF-8", $out_charset, $s);
         }
     }
 
@@ -47,12 +51,15 @@ class GoodCodecTSV
             if ($str === NULL) {
                 $s .= $null;
             }
-            $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\0", "'" => "\\'", "\\" => "\\\\"));
+            $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
         }
-        if ($append_bom && $out_charset === "UTF-8" && \preg_match("{[\\x80-\\xFF]}", $s)) {
-            return "\xEF\xBB\xBF" . $s;
-        } else {
+        if ($out_charset === "UTF-8") {
+            if ($append_bom && \preg_match("{[\\x80-\\xFF]}", $s)) {
+                return "\xEF\xBB\xBF" . $s;
+            }
             return $s;
+        } else {
+            return \iconv("UTF-8", $out_charset, $s);
         }
     }
 
@@ -74,14 +81,17 @@ class GoodCodecTSV
                 if ($str === NULL) {
                     $s .= $null;
                 }
-                $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\0", "'" => "\\'", "\\" => "\\\\"));
+                $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
             }
             $s .= $newline;
         }
-        if ($append_bom && $out_charset === "UTF-8" && \preg_match("{[\\x80-\\xFF]}", $s)) {
-            return "\xEF\xBB\xBF" . $s;
-        } else {
+        if ($out_charset === "UTF-8") {
+            if ($append_bom && \preg_match("{[\\x80-\\xFF]}", $s)) {
+                return "\xEF\xBB\xBF" . $s;
+            }
             return $s;
+        } else {
+            return \iconv("UTF-8", $out_charset, $s);
         }
     }
 
@@ -96,7 +106,7 @@ class GoodCodecTSV
             $in_charset = "UTF-8";
         }
         $detect_bom = $remove_bom && $in_charset === "UTF-8" ? "\xEF" : NULL;
-        $need_iconv = $out_charset === "UTF-8";
+        $need_iconv = $out_charset !== "UTF-8";
         $filter = NULL;
         if ($in_charset !== "UTF-8") {
             $filter = \stream_filter_append($stream, "convert.iconv.$in_charset.utf-8", STREAM_FILTER_READ);
@@ -278,6 +288,94 @@ class GoodCodecTSV
                     throw new \ErrorException("BUG");
             }
         }
+        if ($filter) {
+            \stream_filter_remove($filter);
+        }
+        if ($close_stream) {
+            \fclose($stream);
+        }
+        return;
+    }
+
+    public static function tsv_fast_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0){
+        $detect_bom = $remove_bom && $in_charset === "UTF-8" ? "\xEF" : NULL;
+        $need_iconv = $out_charset !== "UTF-8";
+        $filter = NULL;
+        if ($in_charset !== "UTF-8") {
+            $filter = \stream_filter_append($stream, "convert.iconv.$in_charset.utf-8", STREAM_FILTER_READ);
+        }
+        $s=\fgets($stream);
+        if($s===false || ($detect_bom && $s === "\xEF\xBB\xBF") ){
+            if ($filter) {
+                \stream_filter_remove($filter);
+            }
+            if ($close_stream) {
+                \fclose($stream);
+            }
+            return;
+        }
+        if ($detect_bom && \substr($s, 0, 3) === "\xEF\xBB\xBF") {
+            $s = \substr($s, 3);
+        }
+        for(;;$s = \fgets($stream)){
+            if($s===false){
+                if ($filter) {
+                    \stream_filter_remove($filter);
+                }
+                if ($close_stream) {
+                    \fclose($stream);
+                }
+                return;
+            }
+            $s=\rtrim($s, "\r\n");
+            if($s===""){
+                continue;
+            }
+            $row = array();
+            foreach (\explode("\t",$s) as $str) {
+                $row[] = $str === "\N" ? null :($need_iconv?\iconv("UTF-8", $out_charset, \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\"))):\strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\")));
+            }
+            if ($skip_lines > 0) {
+                $skip_lines--;
+            } else {
+                (yield $row);
+            }
+        }
+    }
+
+
+    //ONLY SUPPORT \b, \f, \r, \n, \t, \0, \', \\
+    //NOT SUPPORT FOR SPEED => Parsing also supports the sequences \a, \v, and \xHH (hex escape sequences) and any \c sequences, where c is any character (these sequences are converted to c). Thus, reading data supports formats where a line feed can be written as \n or \, or as a line feed. 
+    //about 8x faster than tsv_decode_str
+    public static function tsv_fast_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
+    {
+        if ($in_charset !== "UTF-8") {
+            $str = \iconv($in_charset, "UTF-8", $str);
+        } elseif ($remove_bom) {
+            if (\substr($str, 0, 3) === "\xEF\xBB\xBF") {
+                $str = \substr($str, 3);
+            }
+        }
+        $need_iconv = $out_charset !== "UTF-8";
+        if ($str === "") {
+            return array();
+        }
+        $ss = array();
+        foreach (\explode("\n", \trim($str, "\n")) as $r) {
+            if($r===""){
+                continue;
+            }
+            $row = array();
+            foreach (\explode("\t", $r) as $str) {
+                $row[] = $str === "\N" ? null :($need_iconv?\iconv("UTF-8", $out_charset, \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\"))):\strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\")));
+            }
+            if ($skip_lines > 0) {
+                $skip_lines--;
+            } else {
+                $ss[] = $row;
+            }
+        }
+        return $ss;
     }
 
     public static function tsv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
@@ -294,7 +392,7 @@ class GoodCodecTSV
             $in_charset = "UTF-8";
         }
         $detect_bom = $remove_bom && $in_charset === "UTF-8" ? "\xEF" : NULL;
-        $need_iconv = $out_charset === "UTF-8";
+        $need_iconv = $out_charset !== "UTF-8";
         if ($in_charset !== "UTF-8") {
             $str = \iconv($in_charset, "UTF-8", $str);
         }
@@ -472,3 +570,16 @@ class GoodCodecTSV
         return $data;
     }
 }
+
+$s="ab\r\nbc";
+
+$fp = fopen("php://temp/maxmemory:50000000", 'rw');
+fwrite($fp,$s);
+rewind($fp);
+while (($buffer = fgets($fp)) !== false) {
+    var_dump($buffer);
+}
+if (!feof($fp)) {
+    echo "Error: unexpected fgets() fail\n";
+}
+fclose($fp);
