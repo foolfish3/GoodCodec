@@ -570,16 +570,3 @@ class GoodCodecTSV
         return $data;
     }
 }
-
-$s="ab\r\nbc";
-
-$fp = fopen("php://temp/maxmemory:50000000", 'rw');
-fwrite($fp,$s);
-rewind($fp);
-while (($buffer = fgets($fp)) !== false) {
-    var_dump($buffer);
-}
-if (!feof($fp)) {
-    echo "Error: unexpected fgets() fail\n";
-}
-fclose($fp);
