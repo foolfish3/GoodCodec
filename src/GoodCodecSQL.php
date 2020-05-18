@@ -311,7 +311,9 @@ class GoodCodecSQL
             list($converter, $size) = array(NULL, $converter);
         }
         if($size === NULL && $converter === NULL && \is_array($itr)){
-            (yield $itr);
+            if(\count($itr)>0){
+                (yield $itr);
+            }
             return;
         }
         $ar = array();
@@ -322,7 +324,7 @@ class GoodCodecSQL
                 $ar = array();
             }
         }
-        if (\count($ar) >= 0) {
+        if (\count($ar) > 0) {
             (yield $ar);
         }
     }
