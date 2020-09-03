@@ -381,6 +381,14 @@ class GoodCodecSQL
                     case "": //raw no change
                         $ss[$i] = self::mysql_encode_row($p, 1);
                         break;
+                    case "i": //raw no change
+                        foreach(\is_array($p)?$p:array($p) as $val){
+                            if($val!==NULL&&!preg_match("{^[\\+\\-\\.0-9E]+$}",$val)){
+                                throw new \ErrorException("not a number $val");
+                            }
+                        }
+                        $ss[$i] = self::mysql_encode_row($p, 1);
+                        break;
                     case "s":
                         $ss[$i] = self::mysql_encode_row($p, 0);
                         break;
