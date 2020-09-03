@@ -120,4 +120,9 @@ class GoodCodec
     {
         return call_user_func_array(array(__NAMESPACE__ . "\\GoodCodecSQL", "mysql_bind_param"), \func_get_args());
     }
+
+    public static function mysql_bind_param_array($tmpl, $rows, $glue = ",")
+    {
+        return GoodCodecSQL::mysql_bind_param_array($tmpl, $rows, $glue);
+    }
 }

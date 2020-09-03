@@ -329,6 +329,14 @@ class GoodCodecSQL
         }
     }
 
+    public static function mysql_bind_param_array($tmpl,$rows,$glue=","){
+        $ss=array();
+        foreach($rows as $row){
+            $ss[]=self::mysql_bind_param($tmpl,$row);
+        }
+        return \implode($glue,$ss);
+    }
+
     public static function mysql_bind_param()
     {
         $args = \func_get_args();
