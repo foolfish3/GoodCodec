@@ -2,6 +2,8 @@
 
 namespace GoodCodec;
 
+use GoodCodec\GoodCodecTSV as GoodCodecGoodCodecTSV;
+
 class GoodCodecTSV
 {
 
@@ -50,8 +52,9 @@ class GoodCodecTSV
             }
             if ($str === NULL) {
                 $s .= $null;
+            }else{
+                $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
             }
-            $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
         }
         if ($out_charset === "UTF-8") {
             if ($append_bom && \preg_match("{[\\x80-\\xFF]}", $s)) {
@@ -80,8 +83,9 @@ class GoodCodecTSV
                 }
                 if ($str === NULL) {
                     $s .= $null;
+                }else{
+                    $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
                 }
-                $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
             }
             $s .= $newline;
         }
@@ -362,9 +366,9 @@ class GoodCodecTSV
         }
         $ss = array();
         foreach (\explode("\n", \trim($str, "\n")) as $r) {
-            if($r===""){
-                continue;
-            }
+            //if($r===""){
+            //    continue;
+            //}
             $row = array();
             foreach (\explode("\t", $r) as $str) {
                 $row[] = $str === "\N" ? null :($need_iconv?\iconv("UTF-8", $out_charset, \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\"))):\strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\")));
