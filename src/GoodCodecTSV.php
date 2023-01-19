@@ -127,6 +127,7 @@ class GoodCodecTSV
         $row = array();
         $s = "";
         $state = 0;
+        $oct = null;//suppress warnning
         for (;;) {
             switch ($state) {
                 case 0:
@@ -403,6 +404,7 @@ class GoodCodecTSV
         $data = $row = array();
         $s = "";
         $state = 0;
+        $oct = null;//suppress warnning
         $c = @$str[$index = 0];
         for (;;) {
             switch ($state) {
