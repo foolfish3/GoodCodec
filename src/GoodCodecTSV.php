@@ -2,8 +2,6 @@
 
 namespace GoodCodec;
 
-use GoodCodec\GoodCodecTSV as GoodCodecGoodCodecTSV;
-
 class GoodCodecTSV
 {
 
@@ -52,7 +50,7 @@ class GoodCodecTSV
             }
             if ($str === NULL) {
                 $s .= $null;
-            }else{
+            } else {
                 $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
             }
         }
@@ -83,7 +81,7 @@ class GoodCodecTSV
                 }
                 if ($str === NULL) {
                     $s .= $null;
-                }else{
+                } else {
                     $s .= \strtr($need_iconv ? \iconv($in_charset, "UTF-8", $str) : (string) $str, array("\x08" => "\\b", "\x0c" => "\\f", "\r" => "\\r", "\n" => "\\n", "\t" => "\\t", "\x00" => "\\0", "'" => "\\'", "\\" => "\\\\"));
                 }
             }
@@ -127,7 +125,7 @@ class GoodCodecTSV
         $row = array();
         $s = "";
         $state = 0;
-        $oct = null;//suppress warnning
+        $oct = null; //suppress warnning
         for (;;) {
             switch ($state) {
                 case 0:
@@ -299,18 +297,19 @@ class GoodCodecTSV
         if ($close_stream) {
             \fclose($stream);
         }
-        return;
+        //jetbrain warning return;
     }
 
-    public static function tsv_fast_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0){
+    public static function tsv_fast_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
+    {
         $detect_bom = $remove_bom && $in_charset === "UTF-8" ? "\xEF" : NULL;
         $need_iconv = $out_charset !== "UTF-8";
         $filter = NULL;
         if ($in_charset !== "UTF-8") {
             $filter = \stream_filter_append($stream, "convert.iconv.$in_charset.utf-8", STREAM_FILTER_READ);
         }
-        $s=\fgets($stream);
-        if($s===false || ($detect_bom && $s === "\xEF\xBB\xBF") ){
+        $s = \fgets($stream);
+        if ($s === false || ($detect_bom && $s === "\xEF\xBB\xBF")) {
             if ($filter) {
                 \stream_filter_remove($filter);
             }
@@ -322,8 +321,8 @@ class GoodCodecTSV
         if ($detect_bom && \substr($s, 0, 3) === "\xEF\xBB\xBF") {
             $s = \substr($s, 3);
         }
-        for(;;$s = \fgets($stream)){
-            if($s===false){
+        for (;; $s = \fgets($stream)) {
+            if ($s === false) {
                 if ($filter) {
                     \stream_filter_remove($filter);
                 }
@@ -332,13 +331,13 @@ class GoodCodecTSV
                 }
                 return;
             }
-            $s=\rtrim($s, "\r\n");
-            if($s===""){
+            $s = \rtrim($s, "\r\n");
+            if ($s === "") {
                 continue;
             }
             $row = array();
-            foreach (\explode("\t",$s) as $str) {
-                $row[] = $str === "\N" ? null :($need_iconv?\iconv("UTF-8", $out_charset, \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\"))):\strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\")));
+            foreach (\explode("\t", $s) as $str) {
+                $row[] = $str === "\N" ? null : ($need_iconv ? \iconv("UTF-8", $out_charset, \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\"))) : \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\")));
             }
             if ($skip_lines > 0) {
                 $skip_lines--;
@@ -372,7 +371,7 @@ class GoodCodecTSV
             //}
             $row = array();
             foreach (\explode("\t", $r) as $str) {
-                $row[] = $str === "\N" ? null :($need_iconv?\iconv("UTF-8", $out_charset, \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\"))):\strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\")));
+                $row[] = $str === "\N" ? null : ($need_iconv ? \iconv("UTF-8", $out_charset, \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\"))) : \strtr($str, array("\\b" => "\x08", "\\f" => "\x0c", "\\r" => "\r", "\\n" => "\n", "\\t" => "\t", "\0" => "\x00", "\\'" => "'", "\\\\" => "\\")));
             }
             if ($skip_lines > 0) {
                 $skip_lines--;
@@ -404,7 +403,7 @@ class GoodCodecTSV
         $data = $row = array();
         $s = "";
         $state = 0;
-        $oct = null;//suppress warnning
+        $oct = null; //suppress warnning
         $c = @$str[$index = 0];
         for (;;) {
             switch ($state) {

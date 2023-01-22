@@ -26,20 +26,17 @@ class GoodCodecCSV
         $delimiter = isset($delimiter) ? $delimiter : ",";
         $enclosure = isset($enclosure) ? $enclosure : "\"";
         $force_quote = isset($force_quote) ? $force_quote : 0;
-        if ($str === NULL) {
-            return $null;
-        }
 
         $need_iconv = $in_charset !== "UTF-8";
         if ($str === NULL) {
-            $s = $null;
+            return $null;
         } elseif ($str === "") {
             $s = $force_quote == 2 ? "" : "$enclosure$enclosure";
         } else {
-            $quote = 0;
+            //jetbrain warning $quote = 0;
             if ($force_quote == 1) {
                 $quote = 1;
-            //} elseif (!\is_string($str)) {
+                //} elseif (!\is_string($str)) {
             } elseif ($force_quote == 0) { //try to noquote everything but for clickhouse import compatible
                 $str = $need_iconv ? \iconv($in_charset, "UTF-8", $str) : $str;
                 $quote = \strpbrk($str, " \t\r\n\\'\",$enclosure$delimiter") !== false;
@@ -165,14 +162,18 @@ class GoodCodecCSV
         $row = array();
         $map = array("" => 0, $delimiter => 1, $enclosure => 2, "\r" => 4, "\n" => 5);
         $map2 = array("" => 0, $delimiter => 1, "\r" => 4, "\n" => 5);
-        for (;;) {
+        for (; ;) {
             if (isset($map[$c])) {
                 switch ($map[$c]) {
                     case 0:
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
-                        if ($skip_lines > 0) {
-                            $skip_lines--;
-                        } else {
+                        // jetbrain warning
+						// if ($skip_lines > 0) {
+                        //     $skip_lines--;
+                        // } else {
+                        //    (yield $row);
+                        // }
+                        if ($skip_lines === 0) {
                             (yield $row);
                         }
                         break 2;
@@ -182,7 +183,7 @@ class GoodCodecCSV
                         ($c = \fgetc($stream)) !== false or $c = "";
                         continue 2;
                     case 2: //"
-                        for (;;) {
+                        for (; ;) {
                             ($c = \fgetc($stream)) !== false or $c = "";
                             if (isset($map[$c])) {
                                 switch ($map[$c]) {
@@ -194,7 +195,7 @@ class GoodCodecCSV
                                         if ($c === $enclosure) {
                                             $s .= $enclosure;
                                         } else {
-                                            for (;;) {
+                                            for (; ;) {
                                                 if (isset($map2[$c])) {
                                                     break;
                                                 }
@@ -208,9 +209,9 @@ class GoodCodecCSV
                             }
                             $s .= $c;
                         }
-                        throw new \ErrorException("BUG");
+                    //jetbrain warning throw new \ErrorException("BUG");
                     case 4:
-                        for (;;) {
+                        for (; ;) {
                             ($c = \fgetc($stream)) !== false or $c = "";
                             if ($c !== "\n") {
                                 break;
@@ -229,7 +230,7 @@ class GoodCodecCSV
                         }
                         continue 2;
                     case 5:
-                        for (;;) {
+                        for (; ;) {
                             ($c = \fgetc($stream)) !== false or $c = "";
                             if ($c !== "\r") {
                                 break;
@@ -249,7 +250,7 @@ class GoodCodecCSV
                         continue 2;
                 }
             }
-            for (;;) {
+            for (; ;) {
                 if ($detect_bom && $c === $detect_bom) {
                     if ($detect_bom === "\xEF") {
                         $detect_bom = "\xBB";
@@ -319,15 +320,19 @@ class GoodCodecCSV
         $data = $row = array();
         $map = array("" => 0, $delimiter => 1, $enclosure => 2, "\r" => 4, "\n" => 5);
         $map2 = array("" => 0, $delimiter => 1, "\r" => 4, "\n" => 5);
-        for (;;) {
+        for (; ;) {
             $c = @$str[$index];
             if (isset($map[$c])) {
                 switch ($map[$c]) {
                     case 0:
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
-                        if ($skip_lines > 0) {
-                            $skip_lines--;
-                        } else {
+                        // jetbrain warning
+                        // if ($skip_lines > 0) {
+                        //    $skip_lines--;
+                        // } else {
+                        //    $data[] = $row;
+                        // }
+                        if ($skip_lines === 0) {
                             $data[] = $row;
                         }
                         break 2;
@@ -337,7 +342,7 @@ class GoodCodecCSV
                         $index++;
                         continue 2;
                     case 2:
-                        for (;;) {
+                        for (; ;) {
                             $c = @$str[++$index];
                             if (isset($map[$c])) {
                                 switch ($map[$c]) {
@@ -349,7 +354,7 @@ class GoodCodecCSV
                                         if ($c === $enclosure) {
                                             $s .= $enclosure;
                                         } else {
-                                            for (;;) {
+                                            for (; ;) {
                                                 if (isset($map2[$c])) {
                                                     break;
                                                 }
@@ -363,9 +368,9 @@ class GoodCodecCSV
                             }
                             $s .= $c;
                         }
-                        throw new \ErrorException("BUG");
+                    //jetbrain warning throw new \ErrorException("BUG");
                     case 4:
-                        for (;;) {
+                        for (; ;) {
                             $c = @$str[++$index];
                             if ($c !== "\n") {
                                 break;
@@ -384,7 +389,7 @@ class GoodCodecCSV
                         }
                         continue 2;
                     case 5:
-                        for (;;) {
+                        for (; ;) {
                             $c = @$str[++$index];
                             if ($c !== "\r") {
                                 break;
@@ -404,7 +409,7 @@ class GoodCodecCSV
                         continue 2;
                 }
             }
-            for (;;) {
+            for (; ;) {
                 if ($detect_bom && $c === $detect_bom) {
                     if ($detect_bom === "\xEF") {
                         $detect_bom = "\xBB";

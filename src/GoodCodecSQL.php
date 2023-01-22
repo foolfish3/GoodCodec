@@ -4,12 +4,6 @@ namespace GoodCodec;
 
 class GoodCodecSQL
 {
-
-    protected static $utf8_map = array(
-        "utf-8" => 1, "Utf-8" => 1, "uTf-8" => 1, "UTf-8" => 1,
-        "utF-8" => 1, "UtF-8" => 1, "uTF-8" => 1, "UTF-8" => 1,
-    );
-
     public static function mysql_encode_str($str, $noquote = 0)
     {
         if ($str === NULL) {
@@ -97,7 +91,7 @@ class GoodCodecSQL
     private static function get_next_whitespace($str, $index)
     {
         $s = @$str[$index];
-        for (;;) {
+        for (; ;) {
             $c = @$str[++$index];
             switch ($c) {
                 case "\r":
@@ -110,13 +104,13 @@ class GoodCodecSQL
                     return array($s, $index);
             }
         }
-        throw new \ErrorException("BUG");
+        //jetbrain warning throw new \ErrorException("BUG");
     }
 
     private static function get_next_quote($str, $index)
     {
         $s = $quote = @$str[$index];
-        for (;;) {
+        for (; ;) {
             $c = @$str[++$index];
             if ($c === "") {
                 \trigger_error("uncomplete quote $quote");
@@ -136,7 +130,7 @@ class GoodCodecSQL
                 return array($s, $index + 1);
             }
         }
-        throw new \ErrorException("BUG");
+        //jetbrain warning throw new \ErrorException("BUG");
     }
 
     private static function get_next_single_line_comment($str, $index)
@@ -150,7 +144,7 @@ class GoodCodecSQL
                 return array("->", $index);
             }
         } elseif ($c === "-") {
-            for ($s = "--";;) {
+            for ($s = "--"; ;) {
                 $c = @$str[++$index];
                 if ($c === "\r" || $c === "\n" || $c === "") {
                     return array($s, $index);
@@ -158,7 +152,7 @@ class GoodCodecSQL
                     $s .= $c;
                 }
             }
-            throw new \ErrorException("BUG");
+            //jetbrain warning throw new \ErrorException("BUG");
         } else {
             return array("-", $index);
         }
@@ -168,7 +162,7 @@ class GoodCodecSQL
     {
         $c = @$str[++$index];
         if ($c === "*") {
-            for ($s = "/*", $last_c = "";; $last_c = $c) {
+            for ($s = "/*", $last_c = ""; ; $last_c = $c) {
                 $c = @$str[++$index];
                 $s .= $c;
                 if ($c === "/" && $last_c === "*") {
@@ -178,11 +172,12 @@ class GoodCodecSQL
                     return array($s, $index);
                 }
             }
-            throw new \ErrorException("BUG");
+            //jetbrain warning throw new \ErrorException("BUG");
         } else {
             return array("/", $index);
         }
     }
+
     public static function sql_token_get_all($str)
     {
         static $map = NULL;
@@ -202,14 +197,14 @@ class GoodCodecSQL
         if ($str === "") {
             return array();
         } elseif (\is_int($str) || \is_float($str)) { //float number
-            return (string) $str;
+            return (string)$str;
         }
         if ($cache_key === $str) {
             return $cache_value;
         }
         $ss = array();
         $s = "";
-        for ($index = 0;;) {
+        for ($index = 0; ;) {
             $c = @$str[$index];
             switch ($c) {
                 case "'":
@@ -219,7 +214,7 @@ class GoodCodecSQL
                         $ss[] = $s;
                         $s = "";
                     }
-                    list($r, $index) = self::get_next_quote($str, $index, $c);
+                    list($r, $index) = self::get_next_quote($str, $index);
                     $ss[] = $r;
                     break;
                 case "-":
@@ -250,9 +245,9 @@ class GoodCodecSQL
                     $ss[] = $r;
                     break;
                 case "": //END
-                    if ($ss !== "") {
+                    if ($s !== "") {
                         $ss[] = $s;
-                        $s = "";
+                        //jetbrain warning $s = "";
                     }
                     break 2;
                 default:
@@ -281,11 +276,11 @@ class GoodCodecSQL
         }
         $ss = array();
         if ($tmpl === NULL) {
-            foreach ($data as $k => $row) {
+            foreach ($data as $row) {
                 $ss[] = "(" . self::mysql_encode_row($row, 0) . ")";
             }
         } else {
-            foreach ($data as $k => $row) {
+            foreach ($data as $row) {
                 $ss[] = self::mysql_bind_param($tmpl, $row);
             }
         }
@@ -310,8 +305,8 @@ class GoodCodecSQL
         if ($size === NULL) {
             list($converter, $size) = array(NULL, $converter);
         }
-        if($size === NULL && $converter === NULL && \is_array($itr)){
-            if(\count($itr)>0){
+        if ($size === NULL && $converter === NULL && \is_array($itr)) {
+            if (\count($itr) > 0) {
                 (yield $itr);
             }
             return;
@@ -319,7 +314,7 @@ class GoodCodecSQL
         $ar = array();
         foreach ($itr as $row) {
             $ar[] = $converter === NULL ? $row : $converter($row);
-            if ($size!==NULL && \count($ar) >= $size) {
+            if ($size !== NULL && \count($ar) >= $size) {
                 (yield $ar);
                 $ar = array();
             }
@@ -329,12 +324,13 @@ class GoodCodecSQL
         }
     }
 
-    public static function mysql_bind_param_array($tmpl,$rows,$glue=","){
-        $ss=array();
-        foreach($rows as $row){
-            $ss[]=self::mysql_bind_param($tmpl,$row);
+    public static function mysql_bind_param_array($tmpl, $rows, $glue = ",")
+    {
+        $ss = array();
+        foreach ($rows as $row) {
+            $ss[] = self::mysql_bind_param($tmpl, $row);
         }
-        return \implode($glue,$ss);
+        return \implode($glue, $ss);
     }
 
     public static function mysql_bind_param()
@@ -345,7 +341,7 @@ class GoodCodecSQL
             $args = $args[0];
         }
         if (isset($args[1]) && is_array($args[1])) {
-            foreach ($args[1] as $k => &$v) {
+            foreach ($args[1] as $k => $v) {
                 if (\preg_match("{^\\d+$}", $k)) {
                     $bind_param[$k + 1] = $v;
                 } else {
@@ -382,8 +378,8 @@ class GoodCodecSQL
                         $ss[$i] = self::mysql_encode_row($p, 1);
                         break;
                     case "i": //raw no change
-                        foreach(\is_array($p)?$p:array($p) as $val){
-                            if($val!==NULL&&!preg_match("{^[\\+\\-\\.0-9E]+$}",$val)){
+                        foreach (\is_array($p) ? $p : array($p) as $val) {
+                            if ($val !== NULL && !preg_match("{^[+\\-.0-9E]+$}", $val)) {
                                 throw new \ErrorException("not a number $val");
                             }
                         }
