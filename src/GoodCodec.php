@@ -5,6 +5,7 @@ namespace GoodCodec;
 class GoodCodec
 {
     const UTF8 = "UTF-8";
+    const BOM = "\xEF\xBB\xBF";
 
     public static function cut_to_pieces($itr, $converter, $size = NULL)
     {
@@ -43,9 +44,7 @@ class GoodCodec
 
     public static function tsv_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
     {
-        foreach (GoodCodecTSV::tsv_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom) as $row) {
-            (yield $row);
-        }
+        yield from GoodCodecTSV::tsv_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom);
     }
 
     public static function tsv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
@@ -55,9 +54,7 @@ class GoodCodec
 
     public static function tsv_fast_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
     {
-        foreach (GoodCodecTSV::tsv_fast_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom) as $row) {
-            (yield $row);
-        }
+        yield from GoodCodecTSV::tsv_fast_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom);
     }
 
     public static function tsv_fast_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0)
@@ -87,9 +84,7 @@ class GoodCodec
 
     public static function csv_decode_stream($stream, $close_stream, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\N"), $delimiter = ",", $enclosure = "\"")
     {
-        foreach (GoodCodecCSV::csv_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom, $null, $delimiter, $enclosure) as $row) {
-            (yield $row);
-        }
+        yield from GoodCodecCSV::csv_decode_stream($stream, $close_stream, $skip_lines, $in_charset, $out_charset, $remove_bom, $null, $delimiter, $enclosure);
     }
 
     public static function csv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\\N"), $delimiter = ",", $enclosure = "\"")

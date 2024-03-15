@@ -10,6 +10,8 @@ class GoodCodecCSV
         "utF-8" => 1, "UtF-8" => 1, "uTF-8" => 1, "UTF-8" => 1,
     );
 
+    const BOM = "\xEF\xBB\xBF";
+
     //$force_quote 0 try to noquote everything but for clickhouse import compatible
     //$force_quote 1 quote everything
     //$force_quote 2 try to noquote everything,same as excel
@@ -44,7 +46,7 @@ class GoodCodecCSV
                 $str = $need_iconv ? \iconv($in_charset, "UTF-8", $str) : $str;
                 $quote = \strpbrk($str, "\r\n$enclosure$delimiter") !== false;
             } else {
-                throw new \ErrorException("BUG");
+                throw new \LogicException("BUG");
             }
             $s = $quote ? $enclosure . \strtr($str, array($enclosure => $enclosure . $enclosure)) . $enclosure : $str;
         }
@@ -209,7 +211,7 @@ class GoodCodecCSV
                             }
                             $s .= $c;
                         }
-                    //jetbrain warning throw new \ErrorException("BUG");
+                    //jetbrain warning throw new \LogicException("BUG");
                     case 4:
                         for (; ;) {
                             ($c = \fgetc($stream)) !== false or $c = "";
@@ -284,7 +286,7 @@ class GoodCodecCSV
         if ($close_stream) {
             \fclose($stream);
         }
-        return;
+        //jetbrain warning return;
     }
 
     public static function csv_decode_str($str, $skip_lines = 0, $in_charset = "UTF-8", $out_charset = "UTF-8", $remove_bom = 0, $null = array("\\N"), $delimiter = ",", $enclosure = "\"")
@@ -368,7 +370,7 @@ class GoodCodecCSV
                             }
                             $s .= $c;
                         }
-                    //jetbrain warning throw new \ErrorException("BUG");
+                    //jetbrain warning throw new \LogicException("BUG");
                     case 4:
                         for (; ;) {
                             $c = @$str[++$index];
