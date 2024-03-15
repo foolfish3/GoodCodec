@@ -18,7 +18,7 @@ class GoodCodecSQL
         if ($row === NULL || \is_scalar($row)) {
             return self::mysql_encode_str($row, $noquote);
         } elseif (!\is_array($row)) {
-            throw new \ErrorException("param type error");
+            throw new \LogicException("param type error");
         }
         if (\count($row) == 0) {
             \trigger_error("no values in rows,this likely to cause an error in SQL in-list");
@@ -104,7 +104,7 @@ class GoodCodecSQL
                     return array($s, $index);
             }
         }
-        //jetbrain warning throw new \ErrorException("BUG");
+        //jetbrain warning throw new \LogicException("BUG");
     }
 
     private static function get_next_quote($str, $index)
@@ -130,7 +130,7 @@ class GoodCodecSQL
                 return array($s, $index + 1);
             }
         }
-        //jetbrain warning throw new \ErrorException("BUG");
+        //jetbrain warning throw new \LogicException("BUG");
     }
 
     private static function get_next_single_line_comment($str, $index)
@@ -152,7 +152,7 @@ class GoodCodecSQL
                     $s .= $c;
                 }
             }
-            //jetbrain warning throw new \ErrorException("BUG");
+            //jetbrain warning throw new \LogicException("BUG");
         } else {
             return array("-", $index);
         }
@@ -172,7 +172,7 @@ class GoodCodecSQL
                     return array($s, $index);
                 }
             }
-            //jetbrain warning throw new \ErrorException("BUG");
+            //jetbrain warning throw new \LogicException("BUG");
         } else {
             return array("/", $index);
         }
@@ -370,7 +370,7 @@ class GoodCodecSQL
                     if (isset($bind_param[""])) {
                         $p = \call_user_func($bind_param[""], $k);
                     } else {
-                        throw new \ErrorException("cannot find key $k in param list");
+                        throw new \LogicException("cannot find key $k in param list");
                     }
                 }
                 switch ($m[1]) { //1 => 1, array() =>"",warning, array(1,2)=>1,2
@@ -380,7 +380,7 @@ class GoodCodecSQL
                     case "i": //raw no change
                         foreach (\is_array($p) ? $p : array($p) as $val) {
                             if ($val !== NULL && !preg_match("{^[+\\-.0-9E]+$}", $val)) {
-                                throw new \ErrorException("not a number $val");
+                                throw new \LogicException("not a number $val");
                             }
                         }
                         $ss[$i] = self::mysql_encode_row($p, 1);

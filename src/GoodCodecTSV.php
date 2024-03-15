@@ -133,7 +133,7 @@ class GoodCodecTSV
                         case "":
                             $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                             if ($skip_lines > 0) {
-                                $skip_lines--;
+                                //jetbrain warning $skip_lines--;
                             } else {
                                 (yield $row);
                             }
@@ -211,7 +211,7 @@ class GoodCodecTSV
                     if ($c === "") {
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                         if ($skip_lines > 0) {
-                            $skip_lines--;
+                            //jetbrain warning $skip_lines--;
                         } else {
                             (yield $row);
                         }
@@ -236,7 +236,7 @@ class GoodCodecTSV
                                 case "":
                                     $row[] = null;
                                     if ($skip_lines > 0) {
-                                        $skip_lines--;
+                                        //jetbrain warning $skip_lines--;
                                     } else {
                                         (yield $row);
                                     }
@@ -261,7 +261,7 @@ class GoodCodecTSV
                     if ($c === "") {
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                         if ($skip_lines > 0) {
-                            $skip_lines--;
+                            //jetbrain warning $skip_lines--;
                         } else {
                             (yield $row);
                         }
@@ -276,7 +276,7 @@ class GoodCodecTSV
                     if ($c === "") {
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                         if ($skip_lines > 0) {
-                            $skip_lines--;
+                            // $skip_lines--;
                         } else {
                             (yield $row);
                         }
@@ -288,7 +288,7 @@ class GoodCodecTSV
                     ($c = \fgetc($stream)) !== false or $c = "";
                     break;
                 default:
-                    throw new \ErrorException("BUG");
+                    throw new \LogicException("BUG");
             }
         }
         if ($filter) {
@@ -412,7 +412,7 @@ class GoodCodecTSV
                         case "":
                             $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                             if ($skip_lines > 0) {
-                                $skip_lines--;
+                                //jetbrain warning $skip_lines--;
                             } else {
                                 $data[] = $row;
                             }
@@ -490,7 +490,7 @@ class GoodCodecTSV
                     if ($c === "") {
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                         if ($skip_lines > 0) {
-                            $skip_lines--;
+                            //jetbrain warning $skip_lines--;
                         } else {
                             $data[] = $row;
                         }
@@ -516,7 +516,7 @@ class GoodCodecTSV
                                 case "":
                                     $row[] = null;
                                     if ($skip_lines > 0) {
-                                        $skip_lines--;
+                                        //jetbrain warning $skip_lines--;
                                     } else {
                                         $data[] = $row;
                                     }
@@ -542,7 +542,7 @@ class GoodCodecTSV
                     if ($c === "") {
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                         if ($skip_lines > 0) {
-                            $skip_lines--;
+                            //jetbrain warning $skip_lines--;
                         } else {
                             $data[] = $row;
                         }
@@ -557,7 +557,7 @@ class GoodCodecTSV
                     if ($c === "") {
                         $row[] = $need_iconv && $s !== NULL ? \iconv("UTF-8", $out_charset, $s) : $s;
                         if ($skip_lines > 0) {
-                            $skip_lines--;
+                            //jetbrain warning $skip_lines--;
                         } else {
                             $data[] = $row;
                         }
@@ -569,7 +569,7 @@ class GoodCodecTSV
                     $c = @$str[++$index];
                     break;
                 default:
-                    throw new \ErrorException("BUG");
+                    throw new \LogicException("BUG");
             }
         }
         return $data;
