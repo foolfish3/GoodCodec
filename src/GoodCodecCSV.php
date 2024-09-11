@@ -74,8 +74,9 @@ class GoodCodecCSV
         $enclosure = isset($enclosure) ? $enclosure : "\"";
         $force_quote = isset($force_quote) ? $force_quote : 0;
         $s = "";
-        foreach ($row as $idx => $str) {
-            if ($idx !== 0) {
+        $idx = -1;
+        foreach ($row as $str) {
+            if (++$idx !== 0) {
                 $s .= $delimiter;
             }
             $s .= self::csv_encode_str($str, "UTF-8", $in_charset, 0, $null, $delimiter, $enclosure, $force_quote);

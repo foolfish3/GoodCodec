@@ -44,8 +44,9 @@ class GoodCodecTSV
         }
         $need_iconv = $in_charset !== "UTF-8";
         $s = "";
-        foreach ($row as $k => $str) {
-            if ($k != 0) {
+        $idx = -1;
+        foreach ($row as $str) {
+            if (++$idx !== 0) {
                 $s .= "\t";
             }
             if ($str === NULL) {
@@ -75,8 +76,9 @@ class GoodCodecTSV
         $need_iconv = $in_charset !== "UTF-8";
         $s = "";
         foreach ($data as $row) {
-            foreach ($row as $k => $str) {
-                if ($k != 0) {
+            $idx = -1;
+            foreach ($row as $str) {
+                if (++$idx !== 0) {
                     $s .= "\t";
                 }
                 if ($str === NULL) {
