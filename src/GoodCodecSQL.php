@@ -337,9 +337,6 @@ class GoodCodecSQL
     {
         $args = \func_get_args();
         $bind_param = array();
-        if (\is_array($args[0])) {
-            $args = $args[0];
-        }
         if (isset($args[1]) && is_array($args[1])) {
             foreach ($args[1] as $k => $v) {
                 if (\preg_match("{^\\d+$}", $k)) {
@@ -353,7 +350,7 @@ class GoodCodecSQL
                 $bind_param[$i] = $args[$i];
             }
         }
-        $ss = self::sql_token_get_all($args[0]);
+        $ss = is_string($args[0])? self::sql_token_get_all($args[0]): $args[0];
         //?
         //?s
         //?s?gogo
